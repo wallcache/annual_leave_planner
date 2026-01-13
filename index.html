@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leavewise - Annual Leave Planner</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Setup Panel - Modal overlay on first load -->
+    <div id="setup-overlay" class="overlay">
+        <div id="setup-panel" class="glass-panel modal">
+            <h1>Welcome to Leavewise</h1>
+            <p class="subtitle">Plan your annual leave with clarity</p>
+
+            <form id="setup-form">
+                <div class="form-group">
+                    <label for="allowance">Annual leave allowance</label>
+                    <input type="number" id="allowance" min="1" max="50" value="25" required>
+                    <span class="hint">days per year</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="year">Year to plan</label>
+                    <select id="year" required>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="region">UK region</label>
+                    <select id="region" required>
+                        <option value="england-wales">England & Wales</option>
+                        <option value="scotland">Scotland</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Working days</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="workday" value="1" checked>
+                            <span>Mon</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="workday" value="2" checked>
+                            <span>Tue</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="workday" value="3" checked>
+                            <span>Wed</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="workday" value="4" checked>
+                            <span>Thu</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="workday" value="5" checked>
+                            <span>Fri</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="workday" value="6">
+                            <span>Sat</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="workday" value="0">
+                            <span>Sun</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Start Planning</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Label Modal - Shown after drag selection -->
+    <div id="label-overlay" class="overlay hidden">
+        <div id="label-panel" class="glass-panel modal modal-small">
+            <h2>Label this leave</h2>
+            <p id="label-summary" class="selection-summary"></p>
+
+            <form id="label-form">
+                <div class="form-group">
+                    <input type="text" id="leave-label" placeholder="e.g. Rome Trip, Christmas" maxlength="30" required autofocus>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancel-label">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Leave</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Modal - For editing existing leave blocks -->
+    <div id="edit-overlay" class="overlay hidden">
+        <div id="edit-panel" class="glass-panel modal modal-small">
+            <h2>Edit Leave</h2>
+            <p id="edit-summary" class="selection-summary"></p>
+
+            <form id="edit-form">
+                <input type="hidden" id="edit-block-id">
+                <div class="form-group">
+                    <input type="text" id="edit-label" placeholder="Leave label" maxlength="30" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-danger" id="delete-leave">Delete</button>
+                    <button type="button" class="btn-secondary" id="cancel-edit">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Generate Plan Modal -->
+    <div id="plan-overlay" class="overlay hidden">
+        <div id="plan-panel" class="glass-panel modal modal-large">
+            <h2>Your Leave Plan</h2>
+
+            <div id="plan-content">
+                <div id="plan-summary-section">
+                    <h3>Days to Book Off</h3>
+                    <div id="plan-days-list"></div>
+                </div>
+
+                <div id="plan-message-section">
+                    <h3>Message for Manager</h3>
+                    <textarea id="plan-message" readonly></textarea>
+                    <div class="copy-actions">
+                        <button type="button" class="btn-secondary" id="copy-message">Copy Message</button>
+                        <button type="button" class="btn-secondary" id="export-csv">Export CSV</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="close-plan">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="hidden">
+        <!-- Header -->
+        <header id="header">
+            <div class="header-left">
+                <h1 class="logo">Leavewise</h1>
+                <span id="year-display" class="year-badge"></span>
+            </div>
+            <div class="header-right">
+                <button id="jump-today" class="btn-icon" title="Jump to today">Today</button>
+                <button id="settings-btn" class="btn-icon" title="Settings">Settings</button>
+                <button id="generate-plan-btn" class="btn-primary">Generate Plan</button>
+            </div>
+        </header>
+
+        <!-- Live Selection Feedback -->
+        <div id="selection-feedback" class="glass-panel hidden">
+            <span id="feedback-days"></span>
+            <span class="feedback-arrow">→</span>
+            <span id="feedback-total"></span>
+        </div>
+
+        <!-- Calendar Container -->
+        <main id="calendar-container">
+            <div id="calendar"></div>
+        </main>
+
+        <!-- Floating Summary Panel -->
+        <aside id="summary-panel" class="glass-panel">
+            <div class="summary-row">
+                <span class="summary-label">Remaining</span>
+                <span id="summary-remaining" class="summary-value highlight">25</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row">
+                <span class="summary-label">Leave used</span>
+                <span id="summary-used" class="summary-value">0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Days off gained</span>
+                <span id="summary-gained" class="summary-value">0</span>
+            </div>
+            <div class="summary-row roi">
+                <span class="summary-label">ROI</span>
+                <span id="summary-roi" class="summary-value">-</span>
+            </div>
+        </aside>
+
+        <!-- Undo Toast -->
+        <div id="undo-toast" class="glass-panel hidden">
+            <span>Leave deleted</span>
+            <button id="undo-btn" class="btn-link">Undo</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
