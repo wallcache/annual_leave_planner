@@ -170,6 +170,9 @@ function cacheElements() {
 
     elements.miniYear = document.getElementById('mini-year');
     elements.bankHolidaysUl = document.getElementById('bank-holidays-ul');
+    elements.miniYearSidebar = document.getElementById('mini-year-sidebar');
+    elements.collapseSidebarBtn = document.getElementById('collapse-sidebar');
+    elements.expandSidebarBtn = document.getElementById('expand-sidebar');
 
     elements.summaryRemaining = document.getElementById('summary-remaining');
     elements.summaryUsed = document.getElementById('summary-used');
@@ -229,6 +232,10 @@ function setupEventListeners() {
 
     // Undo
     document.getElementById('undo-btn').addEventListener('click', undoLastAction);
+
+    // Sidebar collapse/expand
+    elements.collapseSidebarBtn.addEventListener('click', collapseSidebar);
+    elements.expandSidebarBtn.addEventListener('click', expandSidebar);
 
     // Calendar drag selection
     elements.calendar.addEventListener('mousedown', handleCalendarMouseDown);
@@ -336,6 +343,20 @@ function updateYearDropdownActive() {
 }
 
 // =============================================================================
+// Sidebar Collapse/Expand
+// =============================================================================
+
+function collapseSidebar() {
+    elements.miniYearSidebar.classList.add('collapsed');
+    elements.expandSidebarBtn.classList.remove('hidden');
+}
+
+function expandSidebar() {
+    elements.miniYearSidebar.classList.remove('collapsed');
+    elements.expandSidebarBtn.classList.add('hidden');
+}
+
+// =============================================================================
 // Setup Form Handling
 // =============================================================================
 
@@ -384,7 +405,9 @@ function renderCalendar() {
     const year = state.config.year;
     const today = new Date();
     const todayStr = formatDate(today);
-    const bankHolidays = getBankHolidayDates();
+    const bankHolidays = getBankHolidays(); // Full data with names
+    const bankHolidayMap = {};
+    bankHolidays.forEach(h => { bankHolidayMap[h.date] = h.name; });
 
     // Weekday header
     const weekdayHeader = document.createElement('div');
@@ -417,7 +440,7 @@ function renderCalendar() {
         weekRow.className = 'week-row';
 
         for (let i = 0; i < 7; i++) {
-            const tile = createDayTile(currentDate, year, todayStr, bankHolidays);
+            const tile = createDayTile(currentDate, year, todayStr, bankHolidayMap);
             weekRow.appendChild(tile);
             currentDate.setDate(currentDate.getDate() + 1);
         }
@@ -431,7 +454,7 @@ function renderCalendar() {
     elements.calendar.appendChild(weeksContainer);
 }
 
-function createDayTile(date, year, todayStr, bankHolidays) {
+function createDayTile(date, year, todayStr, bankHolidayMap) {
     const tile = document.createElement('div');
     tile.className = 'day-tile';
 
@@ -466,9 +489,16 @@ function createDayTile(date, year, todayStr, bankHolidays) {
     }
 
     // Bank holiday
-    const isBankHoliday = bankHolidays.includes(dateStr);
-    if (isBankHoliday) {
+    const bankHolidayName = bankHolidayMap[dateStr];
+    if (bankHolidayName) {
         tile.classList.add('bank-holiday');
+
+        // Add bank holiday label
+        const holidayLabel = document.createElement('span');
+        holidayLabel.className = 'bank-holiday-label';
+        // Shorten the name for display
+        holidayLabel.textContent = shortenHolidayName(bankHolidayName);
+        tile.appendChild(holidayLabel);
     }
 
     // Leave block
@@ -497,6 +527,28 @@ function createDayTile(date, year, todayStr, bankHolidays) {
     tile.appendChild(content);
 
     return tile;
+}
+
+// Shorten bank holiday names for display
+function shortenHolidayName(name) {
+    const shortNames = {
+        "New Year's Day": "New Year",
+        "New Year's Day (substitute)": "New Year",
+        "2nd January": "2nd Jan",
+        "2nd January (substitute)": "2nd Jan",
+        "Good Friday": "Good Fri",
+        "Easter Monday": "Easter Mon",
+        "Early May Bank Holiday": "May Day",
+        "Spring Bank Holiday": "Spring",
+        "Summer Bank Holiday": "Summer",
+        "St Andrew's Day": "St Andrew's",
+        "St Andrew's Day (substitute)": "St Andrew's",
+        "Christmas Day": "Christmas",
+        "Christmas Day (substitute)": "Christmas",
+        "Boxing Day": "Boxing Day",
+        "Boxing Day (substitute)": "Boxing Day",
+    };
+    return shortNames[name] || name.split(' ')[0];
 }
 
 function applyLeaveStyles(tile, dateStr, leaveBlock) {
@@ -861,6 +913,10 @@ function handleLabelSubmit(e) {
     };
 
     state.leaveBlocks.push(leaveBlock);
+
+    // Add to undo stack
+    state.undoStack.push({ action: 'add', block: { ...leaveBlock } });
+
     saveState();
 
     closeLabelModal();
@@ -953,13 +1009,23 @@ function showUndoToast() {
 function undoLastAction() {
     const lastAction = state.undoStack.pop();
 
-    if (lastAction && lastAction.action === 'delete') {
+    if (!lastAction) return;
+
+    if (lastAction.action === 'delete') {
+        // Restore deleted block
         state.leaveBlocks.push(lastAction.block);
-        saveState();
-        renderCalendar();
-        renderMiniYear();
-        updateSummary();
+    } else if (lastAction.action === 'add') {
+        // Remove added block
+        const index = state.leaveBlocks.findIndex(b => b.id === lastAction.block.id);
+        if (index !== -1) {
+            state.leaveBlocks.splice(index, 1);
+        }
     }
+
+    saveState();
+    renderCalendar();
+    renderMiniYear();
+    updateSummary();
 
     elements.undoToast.classList.add('hidden');
 }
