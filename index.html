@@ -183,31 +183,31 @@
             </div>
         </div>
 
+        <!-- Year Overview Panel (Floating) -->
+        <aside id="mini-year-sidebar" class="glass-panel collapsed">
+            <div class="sidebar-header">
+                <h3 class="sidebar-title">Year Overview</h3>
+                <button id="collapse-sidebar" class="btn-collapse" title="Close">
+                    <span class="collapse-icon"></span>
+                </button>
+            </div>
+            <div id="sidebar-content">
+                <div id="mini-year"></div>
+                <div id="bank-holidays-list">
+                    <h4>Bank Holidays</h4>
+                    <ul id="bank-holidays-ul"></ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Expand Year Overview Button -->
+        <button id="expand-sidebar" class="glass-panel" title="Show year overview">
+            <span class="expand-icon"></span>
+            <span>Year Overview</span>
+        </button>
+
         <!-- Main Content Area -->
         <div id="main-content">
-            <!-- Left Sidebar - Mini Year View -->
-            <aside id="mini-year-sidebar" class="glass-panel">
-                <div class="sidebar-header">
-                    <h3 class="sidebar-title">Year Overview</h3>
-                    <button id="collapse-sidebar" class="btn-collapse" title="Collapse sidebar">
-                        <span class="collapse-icon"></span>
-                    </button>
-                </div>
-                <div id="sidebar-content">
-                    <div id="mini-year"></div>
-                    <div id="bank-holidays-list">
-                        <h4>Bank Holidays</h4>
-                        <ul id="bank-holidays-ul"></ul>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Collapsed Sidebar Button -->
-            <button id="expand-sidebar" class="glass-panel btn-expand hidden" title="Show year overview">
-                <span class="expand-icon"></span>
-                <span>Year</span>
-            </button>
-
             <!-- Calendar Container -->
             <main id="calendar-container">
                 <div id="calendar"></div>
