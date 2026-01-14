@@ -27,6 +27,7 @@
                         <option value="2025">2025</option>
                         <option value="2026" selected>2026</option>
                         <option value="2027">2027</option>
+                        <option value="2028">2028</option>
                     </select>
                 </div>
 
@@ -40,7 +41,7 @@
 
                 <div class="form-group">
                     <label>Working days</label>
-                    <div class="checkbox-group">
+                    <div class="checkbox-group centered">
                         <label class="checkbox-label">
                             <input type="checkbox" name="workday" value="1" checked>
                             <span>Mon</span>
@@ -128,20 +129,29 @@
                     <div id="plan-days-list"></div>
                 </div>
 
-                <div id="plan-message-section">
+                <div id="plan-message-section" class="hidden">
                     <h3>Message for Manager</h3>
-                    <textarea id="plan-message" readonly></textarea>
+                    <div id="plan-message-formatted" class="formatted-message"></div>
                     <div class="copy-actions">
-                        <button type="button" class="btn-secondary" id="copy-message">Copy Message</button>
-                        <button type="button" class="btn-secondary" id="export-csv">Export CSV</button>
+                        <button type="button" class="btn-secondary" id="copy-message">Copy to Clipboard</button>
                     </div>
                 </div>
             </div>
 
             <div class="modal-actions">
+                <button type="button" class="btn-primary" id="generate-message-btn">Generate Manager Message</button>
                 <button type="button" class="btn-secondary" id="close-plan">Close</button>
             </div>
         </div>
+    </div>
+
+    <!-- Year Selector Dropdown -->
+    <div id="year-dropdown" class="glass-panel hidden">
+        <button class="year-option" data-year="2024">2024</button>
+        <button class="year-option" data-year="2025">2025</button>
+        <button class="year-option" data-year="2026">2026</button>
+        <button class="year-option" data-year="2027">2027</button>
+        <button class="year-option" data-year="2028">2028</button>
     </div>
 
     <!-- Main App Container -->
@@ -150,7 +160,7 @@
         <header id="header">
             <div class="header-left">
                 <h1 class="logo">Leavewise</h1>
-                <span id="year-display" class="year-badge"></span>
+                <button id="year-display" class="year-badge clickable"></button>
             </div>
             <div class="header-right">
                 <button id="jump-today" class="btn-icon" title="Jump to today">Today</button>
@@ -161,15 +171,35 @@
 
         <!-- Live Selection Feedback -->
         <div id="selection-feedback" class="glass-panel hidden">
-            <span id="feedback-days"></span>
-            <span class="feedback-arrow">→</span>
-            <span id="feedback-total"></span>
+            <div class="feedback-content">
+                <div class="feedback-row">
+                    <span class="feedback-label">Leave days:</span>
+                    <span id="feedback-days" class="feedback-value"></span>
+                </div>
+                <div class="feedback-row">
+                    <span class="feedback-label">Total days off:</span>
+                    <span id="feedback-total" class="feedback-value highlight"></span>
+                </div>
+            </div>
         </div>
 
-        <!-- Calendar Container -->
-        <main id="calendar-container">
-            <div id="calendar"></div>
-        </main>
+        <!-- Main Content Area -->
+        <div id="main-content">
+            <!-- Left Sidebar - Mini Year View -->
+            <aside id="mini-year-sidebar" class="glass-panel">
+                <h3 class="sidebar-title">Year Overview</h3>
+                <div id="mini-year"></div>
+                <div id="bank-holidays-list">
+                    <h4>Bank Holidays</h4>
+                    <ul id="bank-holidays-ul"></ul>
+                </div>
+            </aside>
+
+            <!-- Calendar Container -->
+            <main id="calendar-container">
+                <div id="calendar"></div>
+            </main>
+        </div>
 
         <!-- Floating Summary Panel -->
         <aside id="summary-panel" class="glass-panel">

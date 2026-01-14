@@ -1,108 +1,120 @@
 /**
  * Leavewise - Annual Leave Planner
  * A single-page web application for planning annual leave with UK bank holidays.
- *
- * Features:
- * - Year-at-a-glance calendar
- * - Drag to select leave with live ROI calculation
- * - UK bank holidays (England & Wales, Scotland)
- * - localStorage persistence
- * - Export to copyable message or CSV
  */
 
 // =============================================================================
-// UK Bank Holidays Data (2024-2027)
-// Source: gov.uk - Embedded for offline capability
+// UK Bank Holidays Data (2024-2028)
 // =============================================================================
 
 const BANK_HOLIDAYS = {
     'england-wales': {
         2024: [
-            '2024-01-01', // New Year's Day
-            '2024-03-29', // Good Friday
-            '2024-04-01', // Easter Monday
-            '2024-05-06', // Early May bank holiday
-            '2024-05-27', // Spring bank holiday
-            '2024-08-26', // Summer bank holiday
-            '2024-12-25', // Christmas Day
-            '2024-12-26', // Boxing Day
+            { date: '2024-01-01', name: "New Year's Day" },
+            { date: '2024-03-29', name: 'Good Friday' },
+            { date: '2024-04-01', name: 'Easter Monday' },
+            { date: '2024-05-06', name: 'Early May Bank Holiday' },
+            { date: '2024-05-27', name: 'Spring Bank Holiday' },
+            { date: '2024-08-26', name: 'Summer Bank Holiday' },
+            { date: '2024-12-25', name: 'Christmas Day' },
+            { date: '2024-12-26', name: 'Boxing Day' },
         ],
         2025: [
-            '2025-01-01', // New Year's Day
-            '2025-04-18', // Good Friday
-            '2025-04-21', // Easter Monday
-            '2025-05-05', // Early May bank holiday
-            '2025-05-26', // Spring bank holiday
-            '2025-08-25', // Summer bank holiday
-            '2025-12-25', // Christmas Day
-            '2025-12-26', // Boxing Day
+            { date: '2025-01-01', name: "New Year's Day" },
+            { date: '2025-04-18', name: 'Good Friday' },
+            { date: '2025-04-21', name: 'Easter Monday' },
+            { date: '2025-05-05', name: 'Early May Bank Holiday' },
+            { date: '2025-05-26', name: 'Spring Bank Holiday' },
+            { date: '2025-08-25', name: 'Summer Bank Holiday' },
+            { date: '2025-12-25', name: 'Christmas Day' },
+            { date: '2025-12-26', name: 'Boxing Day' },
         ],
         2026: [
-            '2026-01-01', // New Year's Day
-            '2026-04-03', // Good Friday
-            '2026-04-06', // Easter Monday
-            '2026-05-04', // Early May bank holiday
-            '2026-05-25', // Spring bank holiday
-            '2026-08-31', // Summer bank holiday
-            '2026-12-25', // Christmas Day
-            '2026-12-28', // Boxing Day (substitute)
+            { date: '2026-01-01', name: "New Year's Day" },
+            { date: '2026-04-03', name: 'Good Friday' },
+            { date: '2026-04-06', name: 'Easter Monday' },
+            { date: '2026-05-04', name: 'Early May Bank Holiday' },
+            { date: '2026-05-25', name: 'Spring Bank Holiday' },
+            { date: '2026-08-31', name: 'Summer Bank Holiday' },
+            { date: '2026-12-25', name: 'Christmas Day' },
+            { date: '2026-12-28', name: 'Boxing Day (substitute)' },
         ],
         2027: [
-            '2027-01-01', // New Year's Day
-            '2027-03-26', // Good Friday
-            '2027-03-29', // Easter Monday
-            '2027-05-03', // Early May bank holiday
-            '2027-05-31', // Spring bank holiday
-            '2027-08-30', // Summer bank holiday
-            '2027-12-27', // Christmas Day (substitute)
-            '2027-12-28', // Boxing Day (substitute)
+            { date: '2027-01-01', name: "New Year's Day" },
+            { date: '2027-03-26', name: 'Good Friday' },
+            { date: '2027-03-29', name: 'Easter Monday' },
+            { date: '2027-05-03', name: 'Early May Bank Holiday' },
+            { date: '2027-05-31', name: 'Spring Bank Holiday' },
+            { date: '2027-08-30', name: 'Summer Bank Holiday' },
+            { date: '2027-12-27', name: 'Christmas Day (substitute)' },
+            { date: '2027-12-28', name: 'Boxing Day (substitute)' },
+        ],
+        2028: [
+            { date: '2028-01-03', name: "New Year's Day (substitute)" },
+            { date: '2028-04-14', name: 'Good Friday' },
+            { date: '2028-04-17', name: 'Easter Monday' },
+            { date: '2028-05-01', name: 'Early May Bank Holiday' },
+            { date: '2028-05-29', name: 'Spring Bank Holiday' },
+            { date: '2028-08-28', name: 'Summer Bank Holiday' },
+            { date: '2028-12-25', name: 'Christmas Day' },
+            { date: '2028-12-26', name: 'Boxing Day' },
         ],
     },
     'scotland': {
         2024: [
-            '2024-01-01', // New Year's Day
-            '2024-01-02', // 2nd January
-            '2024-03-29', // Good Friday
-            '2024-05-06', // Early May bank holiday
-            '2024-05-27', // Spring bank holiday
-            '2024-08-05', // Summer bank holiday
-            '2024-11-30', // St Andrew's Day (substitute on Dec 2)
-            '2024-12-02', // St Andrew's Day substitute
-            '2024-12-25', // Christmas Day
-            '2024-12-26', // Boxing Day
+            { date: '2024-01-01', name: "New Year's Day" },
+            { date: '2024-01-02', name: '2nd January' },
+            { date: '2024-03-29', name: 'Good Friday' },
+            { date: '2024-05-06', name: 'Early May Bank Holiday' },
+            { date: '2024-05-27', name: 'Spring Bank Holiday' },
+            { date: '2024-08-05', name: 'Summer Bank Holiday' },
+            { date: '2024-12-02', name: "St Andrew's Day (substitute)" },
+            { date: '2024-12-25', name: 'Christmas Day' },
+            { date: '2024-12-26', name: 'Boxing Day' },
         ],
         2025: [
-            '2025-01-01', // New Year's Day
-            '2025-01-02', // 2nd January
-            '2025-04-18', // Good Friday
-            '2025-05-05', // Early May bank holiday
-            '2025-05-26', // Spring bank holiday
-            '2025-08-04', // Summer bank holiday
-            '2025-12-01', // St Andrew's Day (substitute)
-            '2025-12-25', // Christmas Day
-            '2025-12-26', // Boxing Day
+            { date: '2025-01-01', name: "New Year's Day" },
+            { date: '2025-01-02', name: '2nd January' },
+            { date: '2025-04-18', name: 'Good Friday' },
+            { date: '2025-05-05', name: 'Early May Bank Holiday' },
+            { date: '2025-05-26', name: 'Spring Bank Holiday' },
+            { date: '2025-08-04', name: 'Summer Bank Holiday' },
+            { date: '2025-12-01', name: "St Andrew's Day (substitute)" },
+            { date: '2025-12-25', name: 'Christmas Day' },
+            { date: '2025-12-26', name: 'Boxing Day' },
         ],
         2026: [
-            '2026-01-01', // New Year's Day
-            '2026-01-02', // 2nd January
-            '2026-04-03', // Good Friday
-            '2026-05-04', // Early May bank holiday
-            '2026-05-25', // Spring bank holiday
-            '2026-08-03', // Summer bank holiday
-            '2026-11-30', // St Andrew's Day
-            '2026-12-25', // Christmas Day
-            '2026-12-28', // Boxing Day (substitute)
+            { date: '2026-01-01', name: "New Year's Day" },
+            { date: '2026-01-02', name: '2nd January' },
+            { date: '2026-04-03', name: 'Good Friday' },
+            { date: '2026-05-04', name: 'Early May Bank Holiday' },
+            { date: '2026-05-25', name: 'Spring Bank Holiday' },
+            { date: '2026-08-03', name: 'Summer Bank Holiday' },
+            { date: '2026-11-30', name: "St Andrew's Day" },
+            { date: '2026-12-25', name: 'Christmas Day' },
+            { date: '2026-12-28', name: 'Boxing Day (substitute)' },
         ],
         2027: [
-            '2027-01-01', // New Year's Day
-            '2027-01-04', // 2nd January (substitute)
-            '2027-03-26', // Good Friday
-            '2027-05-03', // Early May bank holiday
-            '2027-05-31', // Spring bank holiday
-            '2027-08-02', // Summer bank holiday
-            '2027-11-30', // St Andrew's Day
-            '2027-12-27', // Christmas Day (substitute)
-            '2027-12-28', // Boxing Day (substitute)
+            { date: '2027-01-01', name: "New Year's Day" },
+            { date: '2027-01-04', name: '2nd January (substitute)' },
+            { date: '2027-03-26', name: 'Good Friday' },
+            { date: '2027-05-03', name: 'Early May Bank Holiday' },
+            { date: '2027-05-31', name: 'Spring Bank Holiday' },
+            { date: '2027-08-02', name: 'Summer Bank Holiday' },
+            { date: '2027-11-30', name: "St Andrew's Day" },
+            { date: '2027-12-27', name: 'Christmas Day (substitute)' },
+            { date: '2027-12-28', name: 'Boxing Day (substitute)' },
+        ],
+        2028: [
+            { date: '2028-01-03', name: "New Year's Day (substitute)" },
+            { date: '2028-01-04', name: '2nd January (substitute)' },
+            { date: '2028-04-14', name: 'Good Friday' },
+            { date: '2028-05-01', name: 'Early May Bank Holiday' },
+            { date: '2028-05-29', name: 'Spring Bank Holiday' },
+            { date: '2028-08-07', name: 'Summer Bank Holiday' },
+            { date: '2028-11-30', name: "St Andrew's Day" },
+            { date: '2028-12-25', name: 'Christmas Day' },
+            { date: '2028-12-26', name: 'Boxing Day' },
         ],
     }
 };
@@ -120,48 +132,14 @@ const state = {
         startDate: null,
         endDate: null,
     },
+    yearDropdownOpen: false,
 };
 
 // =============================================================================
 // DOM Elements
 // =============================================================================
 
-const elements = {
-    // Overlays
-    setupOverlay: null,
-    labelOverlay: null,
-    editOverlay: null,
-    planOverlay: null,
-
-    // Forms
-    setupForm: null,
-    labelForm: null,
-    editForm: null,
-
-    // App
-    app: null,
-    calendar: null,
-    yearDisplay: null,
-
-    // Summary
-    summaryRemaining: null,
-    summaryUsed: null,
-    summaryGained: null,
-    summaryRoi: null,
-
-    // Selection feedback
-    selectionFeedback: null,
-    feedbackDays: null,
-    feedbackTotal: null,
-
-    // Buttons
-    jumpTodayBtn: null,
-    settingsBtn: null,
-    generatePlanBtn: null,
-
-    // Toast
-    undoToast: null,
-};
+const elements = {};
 
 // =============================================================================
 // Initialization
@@ -170,13 +148,8 @@ const elements = {
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
-    // Cache DOM elements
     cacheElements();
-
-    // Set up event listeners
     setupEventListeners();
-
-    // Load from localStorage or show setup
     loadState();
 }
 
@@ -193,6 +166,10 @@ function cacheElements() {
     elements.app = document.getElementById('app');
     elements.calendar = document.getElementById('calendar');
     elements.yearDisplay = document.getElementById('year-display');
+    elements.yearDropdown = document.getElementById('year-dropdown');
+
+    elements.miniYear = document.getElementById('mini-year');
+    elements.bankHolidaysUl = document.getElementById('bank-holidays-ul');
 
     elements.summaryRemaining = document.getElementById('summary-remaining');
     elements.summaryUsed = document.getElementById('summary-used');
@@ -208,6 +185,10 @@ function cacheElements() {
     elements.generatePlanBtn = document.getElementById('generate-plan-btn');
 
     elements.undoToast = document.getElementById('undo-toast');
+
+    elements.planDaysList = document.getElementById('plan-days-list');
+    elements.planMessageSection = document.getElementById('plan-message-section');
+    elements.planMessageFormatted = document.getElementById('plan-message-formatted');
 }
 
 function setupEventListeners() {
@@ -228,10 +209,23 @@ function setupEventListeners() {
     elements.settingsBtn.addEventListener('click', openSettings);
     elements.generatePlanBtn.addEventListener('click', generatePlan);
 
+    // Year selector
+    elements.yearDisplay.addEventListener('click', toggleYearDropdown);
+    document.querySelectorAll('.year-option').forEach(btn => {
+        btn.addEventListener('click', () => selectYear(parseInt(btn.dataset.year)));
+    });
+
+    // Close year dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#year-display') && !e.target.closest('#year-dropdown')) {
+            closeYearDropdown();
+        }
+    });
+
     // Plan modal
     document.getElementById('close-plan').addEventListener('click', closePlanModal);
+    document.getElementById('generate-message-btn').addEventListener('click', showManagerMessage);
     document.getElementById('copy-message').addEventListener('click', copyMessage);
-    document.getElementById('export-csv').addEventListener('click', exportCSV);
 
     // Undo
     document.getElementById('undo-btn').addEventListener('click', undoLastAction);
@@ -259,8 +253,6 @@ function loadState() {
             const data = JSON.parse(saved);
             state.config = data.config;
             state.leaveBlocks = data.leaveBlocks || [];
-
-            // Show app and render
             showApp();
         } catch (e) {
             console.error('Failed to parse saved state:', e);
@@ -283,13 +275,11 @@ function showSetup() {
     elements.setupOverlay.classList.remove('hidden');
     elements.app.classList.add('hidden');
 
-    // Pre-fill with existing config if available
     if (state.config) {
         document.getElementById('allowance').value = state.config.allowance;
         document.getElementById('year').value = state.config.year;
         document.getElementById('region').value = state.config.region;
 
-        // Reset working days checkboxes
         document.querySelectorAll('input[name="workday"]').forEach(cb => {
             cb.checked = state.config.workingDays.includes(parseInt(cb.value));
         });
@@ -301,9 +291,48 @@ function showApp() {
     elements.app.classList.remove('hidden');
 
     elements.yearDisplay.textContent = state.config.year;
+    updateYearDropdownActive();
 
     renderCalendar();
+    renderMiniYear();
+    renderBankHolidaysList();
     updateSummary();
+}
+
+// =============================================================================
+// Year Selector
+// =============================================================================
+
+function toggleYearDropdown() {
+    state.yearDropdownOpen = !state.yearDropdownOpen;
+    elements.yearDropdown.classList.toggle('hidden', !state.yearDropdownOpen);
+}
+
+function closeYearDropdown() {
+    state.yearDropdownOpen = false;
+    elements.yearDropdown.classList.add('hidden');
+}
+
+function selectYear(year) {
+    state.config.year = year;
+    // Clear leave blocks when changing year
+    state.leaveBlocks = [];
+    saveState();
+
+    elements.yearDisplay.textContent = year;
+    updateYearDropdownActive();
+    closeYearDropdown();
+
+    renderCalendar();
+    renderMiniYear();
+    renderBankHolidaysList();
+    updateSummary();
+}
+
+function updateYearDropdownActive() {
+    document.querySelectorAll('.year-option').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.year) === state.config.year);
+    });
 }
 
 // =============================================================================
@@ -317,7 +346,6 @@ function handleSetupSubmit(e) {
     const year = parseInt(document.getElementById('year').value);
     const region = document.getElementById('region').value;
 
-    // Get working days
     const workingDays = [];
     document.querySelectorAll('input[name="workday"]:checked').forEach(cb => {
         workingDays.push(parseInt(cb.value));
@@ -338,13 +366,15 @@ function openSettings() {
 }
 
 // =============================================================================
-// Calendar Rendering
+// Calendar Rendering - Continuous Weeks
 // =============================================================================
 
 const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
 ];
+
+const MONTH_ABBREV = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -354,34 +384,9 @@ function renderCalendar() {
     const year = state.config.year;
     const today = new Date();
     const todayStr = formatDate(today);
+    const bankHolidays = getBankHolidayDates();
 
-    // Get bank holidays for this year and region
-    const bankHolidays = getBankHolidays();
-
-    // Render each month
-    for (let month = 0; month < 12; month++) {
-        const monthSection = createMonthSection(year, month, todayStr, bankHolidays);
-        elements.calendar.appendChild(monthSection);
-    }
-}
-
-function createMonthSection(year, month, todayStr, bankHolidays) {
-    const section = document.createElement('div');
-    section.className = 'month-section';
-    section.id = `month-${month}`;
-
-    // Header
-    const header = document.createElement('div');
-    header.className = 'month-header';
-
-    const monthName = document.createElement('span');
-    monthName.className = 'month-name';
-    monthName.textContent = MONTH_NAMES[month];
-
-    header.appendChild(monthName);
-    section.appendChild(header);
-
-    // Weekday labels
+    // Weekday header
     const weekdayHeader = document.createElement('div');
     weekdayHeader.className = 'weekday-header';
     DAY_NAMES.forEach(day => {
@@ -390,70 +395,108 @@ function createMonthSection(year, month, todayStr, bankHolidays) {
         label.textContent = day;
         weekdayHeader.appendChild(label);
     });
-    section.appendChild(weekdayHeader);
+    elements.calendar.appendChild(weekdayHeader);
 
-    // Days grid
-    const daysGrid = document.createElement('div');
-    daysGrid.className = 'days-grid';
+    // Continuous weeks container
+    const weeksContainer = document.createElement('div');
+    weeksContainer.className = 'weeks-container';
 
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    // Get first day of year and last day of year
+    const firstDayOfYear = new Date(year, 0, 1);
+    const lastDayOfYear = new Date(year, 11, 31);
 
-    // Get day of week for first day (0 = Sunday, convert to Monday = 0)
-    let startDayOfWeek = firstDay.getDay();
-    startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1; // Convert to Mon = 0
+    // Find the Monday of the week containing Jan 1
+    let currentDate = new Date(firstDayOfYear);
+    const dayOfWeek = currentDate.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    currentDate.setDate(currentDate.getDate() + mondayOffset);
 
-    // Empty tiles for days before first day of month
-    for (let i = 0; i < startDayOfWeek; i++) {
-        const emptyTile = document.createElement('div');
-        emptyTile.className = 'day-tile empty';
-        emptyTile.innerHTML = '<span class="day-number"></span>';
-        daysGrid.appendChild(emptyTile);
+    // Generate weeks until we pass Dec 31
+    while (currentDate <= lastDayOfYear || currentDate.getDay() !== 1) {
+        const weekRow = document.createElement('div');
+        weekRow.className = 'week-row';
+
+        for (let i = 0; i < 7; i++) {
+            const tile = createDayTile(currentDate, year, todayStr, bankHolidays);
+            weekRow.appendChild(tile);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        weeksContainer.appendChild(weekRow);
+
+        // Stop if we've completed the week containing Dec 31
+        if (currentDate.getFullYear() > year) break;
     }
 
-    // Day tiles
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-        const date = new Date(year, month, day);
-        const dateStr = formatDate(date);
-        const dayOfWeek = date.getDay(); // 0 = Sunday
+    elements.calendar.appendChild(weeksContainer);
+}
 
-        const tile = document.createElement('div');
-        tile.className = 'day-tile';
-        tile.dataset.date = dateStr;
+function createDayTile(date, year, todayStr, bankHolidays) {
+    const tile = document.createElement('div');
+    tile.className = 'day-tile';
 
-        // Check if weekend (Saturday = 6, Sunday = 0)
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        if (isWeekend) {
-            tile.classList.add('weekend');
-        }
+    const dateStr = formatDate(date);
+    const dayOfWeek = date.getDay();
+    const dayOfMonth = date.getDate();
+    const month = date.getMonth();
 
-        // Check if non-working day (workingDays uses JS convention: 0=Sun, 1=Mon, etc.)
-        if (!state.config.workingDays.includes(dayOfWeek)) {
-            tile.classList.add('non-working');
-        }
-
-        // Check if today
-        if (dateStr === todayStr) {
-            tile.classList.add('today');
-        }
-
-        // Check if bank holiday
-        if (bankHolidays.includes(dateStr)) {
-            tile.classList.add('bank-holiday');
-        }
-
-        // Check if has leave
-        const leaveBlock = getLeaveBlockForDate(dateStr);
-        if (leaveBlock) {
-            applyLeaveStyles(tile, dateStr, leaveBlock);
-        }
-
-        tile.innerHTML = `<span class="day-number">${day}</span>`;
-        daysGrid.appendChild(tile);
+    // Check if date is in the target year
+    if (date.getFullYear() !== year) {
+        tile.classList.add('empty');
+        tile.innerHTML = '<span class="day-number"></span>';
+        return tile;
     }
 
-    section.appendChild(daysGrid);
-    return section;
+    tile.dataset.date = dateStr;
+
+    // Weekend
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    if (isWeekend) {
+        tile.classList.add('weekend');
+    }
+
+    // Non-working day
+    if (!state.config.workingDays.includes(dayOfWeek)) {
+        tile.classList.add('non-working');
+    }
+
+    // Today
+    if (dateStr === todayStr) {
+        tile.classList.add('today');
+    }
+
+    // Bank holiday
+    const isBankHoliday = bankHolidays.includes(dateStr);
+    if (isBankHoliday) {
+        tile.classList.add('bank-holiday');
+    }
+
+    // Leave block
+    const leaveBlock = getLeaveBlockForDate(dateStr);
+    if (leaveBlock) {
+        applyLeaveStyles(tile, dateStr, leaveBlock);
+    }
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'day-content';
+
+    // Show month name on 1st of each month
+    if (dayOfMonth === 1) {
+        const monthIndicator = document.createElement('span');
+        monthIndicator.className = 'month-indicator';
+        monthIndicator.textContent = MONTH_ABBREV[month];
+        content.appendChild(monthIndicator);
+    }
+
+    const dayNumber = document.createElement('span');
+    dayNumber.className = 'day-number';
+    dayNumber.textContent = dayOfMonth;
+    content.appendChild(dayNumber);
+
+    tile.appendChild(content);
+
+    return tile;
 }
 
 function applyLeaveStyles(tile, dateStr, leaveBlock) {
@@ -484,13 +527,19 @@ function applyLeaveStyles(tile, dateStr, leaveBlock) {
     // Add edit button
     const editBtn = document.createElement('button');
     editBtn.className = 'leave-edit-btn';
-    editBtn.textContent = '...';
+    editBtn.textContent = '···';
     editBtn.dataset.leaveId = leaveBlock.id;
     editBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         openEditModal(leaveBlock.id);
     });
     tile.appendChild(editBtn);
+}
+
+function getBankHolidayDates() {
+    const { year, region } = state.config;
+    const holidays = BANK_HOLIDAYS[region]?.[year] || [];
+    return holidays.map(h => h.date);
 }
 
 function getBankHolidays() {
@@ -501,6 +550,85 @@ function getBankHolidays() {
 function getLeaveBlockForDate(dateStr) {
     return state.leaveBlocks.find(block => {
         return dateStr >= block.startDate && dateStr <= block.endDate;
+    });
+}
+
+// =============================================================================
+// Mini Year Sidebar
+// =============================================================================
+
+function renderMiniYear() {
+    elements.miniYear.innerHTML = '';
+
+    const year = state.config.year;
+    const bankHolidays = getBankHolidayDates();
+
+    for (let month = 0; month < 12; month++) {
+        const miniMonth = document.createElement('div');
+        miniMonth.className = 'mini-month';
+
+        const monthName = document.createElement('div');
+        monthName.className = 'mini-month-name';
+        monthName.textContent = MONTH_ABBREV[month];
+        miniMonth.appendChild(monthName);
+
+        const grid = document.createElement('div');
+        grid.className = 'mini-month-grid';
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        // Get starting position (Mon = 0)
+        let startDayOfWeek = firstDay.getDay();
+        startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+
+        // Empty cells
+        for (let i = 0; i < startDayOfWeek; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'mini-day empty';
+            grid.appendChild(empty);
+        }
+
+        // Days
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+            const date = new Date(year, month, day);
+            const dateStr = formatDate(date);
+            const dayOfWeek = date.getDay();
+
+            const miniDay = document.createElement('div');
+            miniDay.className = 'mini-day';
+            miniDay.textContent = day;
+
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                miniDay.classList.add('weekend');
+            }
+
+            if (bankHolidays.includes(dateStr)) {
+                miniDay.classList.add('bank-holiday');
+            }
+
+            if (getLeaveBlockForDate(dateStr)) {
+                miniDay.classList.add('has-leave');
+            }
+
+            grid.appendChild(miniDay);
+        }
+
+        miniMonth.appendChild(grid);
+        elements.miniYear.appendChild(miniMonth);
+    }
+}
+
+function renderBankHolidaysList() {
+    elements.bankHolidaysUl.innerHTML = '';
+
+    const holidays = getBankHolidays();
+
+    holidays.forEach(holiday => {
+        const li = document.createElement('li');
+        const date = parseDate(holiday.date);
+        li.textContent = `${date.getDate()} ${MONTH_ABBREV[date.getMonth()]} – ${holiday.name}`;
+        elements.bankHolidaysUl.appendChild(li);
     });
 }
 
@@ -542,18 +670,15 @@ function handleCalendarMouseUp(e) {
 
     state.selection.active = false;
 
-    // Check if we have a valid selection
     const { startDate, endDate } = normalizeSelection();
 
     if (startDate && endDate) {
-        // Check for overlaps
         if (hasOverlap(startDate, endDate)) {
             alert('This selection overlaps with existing leave. Please choose different dates.');
             clearSelection();
             return;
         }
 
-        // Show label modal
         showLabelModal(startDate, endDate);
     } else {
         clearSelection();
@@ -565,7 +690,6 @@ function normalizeSelection() {
 
     if (!startDate || !endDate) return { startDate: null, endDate: null };
 
-    // Ensure start <= end
     if (startDate > endDate) {
         [startDate, endDate] = [endDate, startDate];
     }
@@ -580,7 +704,6 @@ function hasOverlap(startDate, endDate) {
 }
 
 function updateSelectionVisuals() {
-    // Clear previous selection styles
     document.querySelectorAll('.day-tile.selecting, .day-tile.selection-start, .day-tile.selection-end').forEach(tile => {
         tile.classList.remove('selecting', 'selection-start', 'selection-end');
     });
@@ -588,7 +711,6 @@ function updateSelectionVisuals() {
     const { startDate, endDate } = normalizeSelection();
     if (!startDate || !endDate) return;
 
-    // Apply selection styles to all tiles in range
     document.querySelectorAll('.day-tile[data-date]').forEach(tile => {
         const date = tile.dataset.date;
         if (date >= startDate && date <= endDate) {
@@ -612,10 +734,10 @@ function updateSelectionFeedback() {
     const { startDate, endDate } = normalizeSelection();
     if (!startDate || !endDate) return;
 
-    const roi = calculateROI(startDate, endDate);
+    const roi = calculateROIWithConnectedWeekends(startDate, endDate);
 
-    elements.feedbackDays.textContent = `${roi.leaveDaysUsed} leave day${roi.leaveDaysUsed !== 1 ? 's' : ''}`;
-    elements.feedbackTotal.textContent = `${roi.totalDaysOff} day${roi.totalDaysOff !== 1 ? 's' : ''} off`;
+    elements.feedbackDays.textContent = roi.leaveDaysUsed;
+    elements.feedbackTotal.textContent = roi.totalDaysOff;
 }
 
 function hideSelectionFeedback() {
@@ -633,32 +755,71 @@ function clearSelection() {
 }
 
 // =============================================================================
-// ROI Calculation
+// ROI Calculation with Connected Weekends
 // =============================================================================
 
-function calculateROI(startDate, endDate) {
-    const bankHolidays = getBankHolidays();
+function calculateROIWithConnectedWeekends(startDate, endDate) {
+    const bankHolidays = getBankHolidayDates();
     const { workingDays } = state.config;
+
+    // Expand range to include connected weekends
+    let expandedStart = parseDate(startDate);
+    let expandedEnd = parseDate(endDate);
+
+    // Expand backwards to include connected weekends
+    while (true) {
+        const prevDay = new Date(expandedStart);
+        prevDay.setDate(prevDay.getDate() - 1);
+        const prevDayOfWeek = prevDay.getDay();
+        const prevDateStr = formatDate(prevDay);
+
+        // Check if previous day is a weekend or bank holiday
+        const isWeekend = prevDayOfWeek === 0 || prevDayOfWeek === 6;
+        const isBankHoliday = bankHolidays.includes(prevDateStr);
+
+        if (isWeekend || isBankHoliday) {
+            expandedStart = prevDay;
+        } else {
+            break;
+        }
+    }
+
+    // Expand forwards to include connected weekends
+    while (true) {
+        const nextDay = new Date(expandedEnd);
+        nextDay.setDate(nextDay.getDate() + 1);
+        const nextDayOfWeek = nextDay.getDay();
+        const nextDateStr = formatDate(nextDay);
+
+        // Check if next day is a weekend or bank holiday
+        const isWeekend = nextDayOfWeek === 0 || nextDayOfWeek === 6;
+        const isBankHoliday = bankHolidays.includes(nextDateStr);
+
+        if (isWeekend || isBankHoliday) {
+            expandedEnd = nextDay;
+        } else {
+            break;
+        }
+    }
 
     let leaveDaysUsed = 0;
     let totalDaysOff = 0;
 
-    const start = parseDate(startDate);
-    const end = parseDate(endDate);
-
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    // Count days in expanded range
+    for (let d = new Date(expandedStart); d <= expandedEnd; d.setDate(d.getDate() + 1)) {
         const dateStr = formatDate(d);
-        const dayOfWeek = d.getDay(); // 0 = Sunday
+        const dayOfWeek = d.getDay();
 
         totalDaysOff++;
 
-        // Check if this is a working day
-        const isWorkingDay = workingDays.includes(dayOfWeek);
-        const isBankHoliday = bankHolidays.includes(dateStr);
+        // Only count leave days for the original selection range
+        if (dateStr >= startDate && dateStr <= endDate) {
+            const isWorkingDay = workingDays.includes(dayOfWeek);
+            const isBankHoliday = bankHolidays.includes(dateStr);
 
-        // Only count as leave if it's a working day and not a bank holiday
-        if (isWorkingDay && !isBankHoliday) {
-            leaveDaysUsed++;
+            if (isWorkingDay && !isBankHoliday) {
+                leaveDaysUsed++;
+            }
         }
     }
 
@@ -670,10 +831,10 @@ function calculateROI(startDate, endDate) {
 // =============================================================================
 
 function showLabelModal(startDate, endDate) {
-    const roi = calculateROI(startDate, endDate);
+    const roi = calculateROIWithConnectedWeekends(startDate, endDate);
 
     document.getElementById('label-summary').textContent =
-        `${formatDateRange(startDate, endDate)} • ${roi.leaveDaysUsed} leave → ${roi.totalDaysOff} days off`;
+        `${formatDateRange(startDate, endDate)} • ${roi.leaveDaysUsed} leave days → ${roi.totalDaysOff} days off`;
 
     document.getElementById('leave-label').value = '';
 
@@ -688,7 +849,7 @@ function handleLabelSubmit(e) {
     if (!label) return;
 
     const { startDate, endDate } = normalizeSelection();
-    const roi = calculateROI(startDate, endDate);
+    const roi = calculateROIWithConnectedWeekends(startDate, endDate);
 
     const leaveBlock = {
         id: generateId(),
@@ -705,6 +866,7 @@ function handleLabelSubmit(e) {
     closeLabelModal();
     clearSelection();
     renderCalendar();
+    renderMiniYear();
     updateSummary();
 }
 
@@ -728,7 +890,7 @@ function openEditModal(blockId) {
     document.getElementById('edit-block-id').value = blockId;
     document.getElementById('edit-label').value = block.label;
     document.getElementById('edit-summary').textContent =
-        `${formatDateRange(block.startDate, block.endDate)} • ${block.leaveDaysUsed} leave → ${block.totalDaysOff} days off`;
+        `${formatDateRange(block.startDate, block.endDate)} • ${block.leaveDaysUsed} leave days → ${block.totalDaysOff} days off`;
 
     elements.editOverlay.classList.remove('hidden');
     document.getElementById('edit-label').focus();
@@ -761,17 +923,15 @@ function handleDeleteLeave() {
     const blockIndex = state.leaveBlocks.findIndex(b => b.id === blockId);
 
     if (blockIndex !== -1) {
-        // Save to undo stack
         const deleted = state.leaveBlocks[blockIndex];
         state.undoStack.push({ action: 'delete', block: { ...deleted } });
 
-        // Remove
         state.leaveBlocks.splice(blockIndex, 1);
         saveState();
         renderCalendar();
+        renderMiniYear();
         updateSummary();
 
-        // Show undo toast
         showUndoToast();
     }
 
@@ -785,7 +945,6 @@ function handleDeleteLeave() {
 function showUndoToast() {
     elements.undoToast.classList.remove('hidden');
 
-    // Auto-hide after 5 seconds
     setTimeout(() => {
         elements.undoToast.classList.add('hidden');
     }, 5000);
@@ -798,6 +957,7 @@ function undoLastAction() {
         state.leaveBlocks.push(lastAction.block);
         saveState();
         renderCalendar();
+        renderMiniYear();
         updateSummary();
     }
 
@@ -827,7 +987,6 @@ function updateSummary() {
     elements.summaryGained.textContent = totalGained;
     elements.summaryRoi.textContent = totalUsed > 0 ? `${roi}x` : '-';
 
-    // Color code remaining
     if (remaining < 0) {
         elements.summaryRemaining.style.color = 'var(--accent-danger)';
     } else if (remaining <= 5) {
@@ -847,56 +1006,106 @@ function generatePlan() {
         return;
     }
 
-    // Sort blocks by date
-    const sortedBlocks = [...state.leaveBlocks].sort((a, b) => a.startDate.localeCompare(b.startDate));
+    // Hide message section initially
+    elements.planMessageSection.classList.add('hidden');
 
-    // Build days list
-    const daysList = document.getElementById('plan-days-list');
-    daysList.innerHTML = '';
+    // Get all working days that need to be booked, grouped by month
+    const daysByMonth = {};
+    const bankHolidays = getBankHolidayDates();
 
-    sortedBlocks.forEach(block => {
-        const div = document.createElement('div');
-        div.className = 'plan-leave-block';
+    state.leaveBlocks.forEach(block => {
+        const start = parseDate(block.startDate);
+        const end = parseDate(block.endDate);
 
-        const labelEl = document.createElement('div');
-        labelEl.className = 'plan-leave-label';
-        labelEl.textContent = block.label;
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = formatDate(d);
+            const dayOfWeek = d.getDay();
 
-        const datesEl = document.createElement('div');
-        datesEl.className = 'plan-leave-dates';
-        datesEl.textContent = formatDateRangeFriendly(block.startDate, block.endDate);
+            const isWorkingDay = state.config.workingDays.includes(dayOfWeek);
+            const isBankHoliday = bankHolidays.includes(dateStr);
 
-        div.appendChild(labelEl);
-        div.appendChild(datesEl);
-        daysList.appendChild(div);
+            if (isWorkingDay && !isBankHoliday) {
+                const month = d.getMonth();
+                if (!daysByMonth[month]) {
+                    daysByMonth[month] = [];
+                }
+                daysByMonth[month].push({
+                    date: dateStr,
+                    day: d.getDate(),
+                    dayName: DAY_NAMES[dayOfWeek === 0 ? 6 : dayOfWeek - 1],
+                    label: block.label
+                });
+            }
+        }
     });
 
-    // Build message
-    const message = generateManagerMessage(sortedBlocks);
-    document.getElementById('plan-message').value = message;
+    // Build days list HTML
+    elements.planDaysList.innerHTML = '';
+
+    Object.keys(daysByMonth).sort((a, b) => a - b).forEach(monthIndex => {
+        const monthGroup = document.createElement('div');
+        monthGroup.className = 'plan-month-group';
+
+        const monthName = document.createElement('div');
+        monthName.className = 'plan-month-name';
+        monthName.textContent = MONTH_NAMES[monthIndex];
+        monthGroup.appendChild(monthName);
+
+        const daysContainer = document.createElement('div');
+        daysContainer.className = 'plan-days';
+
+        // Sort days and remove duplicates
+        const uniqueDays = [];
+        const seen = new Set();
+        daysByMonth[monthIndex].forEach(day => {
+            if (!seen.has(day.date)) {
+                seen.add(day.date);
+                uniqueDays.push(day);
+            }
+        });
+        uniqueDays.sort((a, b) => a.day - b.day);
+
+        uniqueDays.forEach(day => {
+            const dayEl = document.createElement('span');
+            dayEl.className = 'plan-day';
+            dayEl.innerHTML = `${day.dayName} ${day.day}<span class="leave-name">${day.label}</span>`;
+            daysContainer.appendChild(dayEl);
+        });
+
+        monthGroup.appendChild(daysContainer);
+        elements.planDaysList.appendChild(monthGroup);
+    });
 
     elements.planOverlay.classList.remove('hidden');
 }
 
-function generateManagerMessage(blocks) {
-    const lines = ['Hi,', '', 'Would it be okay to book the following annual leave for the coming year:', ''];
+function showManagerMessage() {
+    elements.planMessageSection.classList.remove('hidden');
 
-    blocks.forEach(block => {
+    // Generate formatted message
+    const sortedBlocks = [...state.leaveBlocks].sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+    let html = '<div class="greeting">Hi,</div>';
+    html += '<div class="intro">Would it be okay to book the following annual leave for the coming year:</div>';
+    html += '<ul class="leave-list">';
+
+    sortedBlocks.forEach(block => {
         const workingDays = getWorkingDaysInRange(block.startDate, block.endDate);
         if (workingDays.length > 0) {
             const start = workingDays[0];
             const end = workingDays[workingDays.length - 1];
-            lines.push(`• ${formatDateFriendly(start)} – ${formatDateFriendly(end)} (${block.label})`);
+            html += `<li>${formatDateFriendly(start)} – ${formatDateFriendly(end)} <em>(${block.label})</em></li>`;
         }
     });
 
-    lines.push('', 'Thanks!');
+    html += '</ul>';
+    html += '<div class="sign-off">Thanks!</div>';
 
-    return lines.join('\n');
+    elements.planMessageFormatted.innerHTML = html;
 }
 
 function getWorkingDaysInRange(startDate, endDate) {
-    const bankHolidays = getBankHolidays();
+    const bankHolidays = getBankHolidayDates();
     const { workingDays } = state.config;
     const result = [];
 
@@ -923,39 +1132,29 @@ function closePlanModal() {
 }
 
 function copyMessage() {
-    const message = document.getElementById('plan-message').value;
-    navigator.clipboard.writeText(message).then(() => {
+    // Build plain text version
+    const sortedBlocks = [...state.leaveBlocks].sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+    let text = 'Hi,\n\n';
+    text += 'Would it be okay to book the following annual leave for the coming year:\n\n';
+
+    sortedBlocks.forEach(block => {
+        const workingDays = getWorkingDaysInRange(block.startDate, block.endDate);
+        if (workingDays.length > 0) {
+            const start = workingDays[0];
+            const end = workingDays[workingDays.length - 1];
+            text += `• ${formatDateFriendly(start)} – ${formatDateFriendly(end)} (${block.label})\n`;
+        }
+    });
+
+    text += '\nThanks!';
+
+    navigator.clipboard.writeText(text).then(() => {
         const btn = document.getElementById('copy-message');
         const original = btn.textContent;
         btn.textContent = 'Copied!';
         setTimeout(() => btn.textContent = original, 2000);
     });
-}
-
-function exportCSV() {
-    const rows = [['Label', 'Start Date', 'End Date', 'Leave Days', 'Total Days Off']];
-
-    state.leaveBlocks.forEach(block => {
-        rows.push([
-            block.label,
-            block.startDate,
-            block.endDate,
-            block.leaveDaysUsed,
-            block.totalDaysOff
-        ]);
-    });
-
-    const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `leavewise-${state.config.year}.csv`;
-    a.click();
-
-    URL.revokeObjectURL(url);
 }
 
 // =============================================================================
@@ -964,11 +1163,10 @@ function exportCSV() {
 
 function jumpToToday() {
     const today = new Date();
-    const month = today.getMonth();
+    const todayTile = document.querySelector(`.day-tile[data-date="${formatDate(today)}"]`);
 
-    const monthSection = document.getElementById(`month-${month}`);
-    if (monthSection) {
-        monthSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (todayTile) {
+        todayTile.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
 
@@ -977,7 +1175,6 @@ function jumpToToday() {
 // =============================================================================
 
 function handleKeyDown(e) {
-    // Escape to close modals
     if (e.key === 'Escape') {
         if (!elements.labelOverlay.classList.contains('hidden')) {
             cancelSelection();
@@ -986,9 +1183,9 @@ function handleKeyDown(e) {
         } else if (!elements.planOverlay.classList.contains('hidden')) {
             closePlanModal();
         }
+        closeYearDropdown();
     }
 
-    // Cmd/Ctrl + Z for undo
     if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
         if (state.undoStack.length > 0) {
             e.preventDefault();
@@ -1017,30 +1214,10 @@ function formatDateRange(startDate, endDate) {
     const start = parseDate(startDate);
     const end = parseDate(endDate);
 
-    const startStr = `${start.getDate()} ${MONTH_NAMES[start.getMonth()].slice(0, 3)}`;
-    const endStr = `${end.getDate()} ${MONTH_NAMES[end.getMonth()].slice(0, 3)}`;
+    const startStr = `${start.getDate()} ${MONTH_ABBREV[start.getMonth()]}`;
+    const endStr = `${end.getDate()} ${MONTH_ABBREV[end.getMonth()]}`;
 
     if (startDate === endDate) {
-        return startStr;
-    }
-
-    return `${startStr} – ${endStr}`;
-}
-
-function formatDateRangeFriendly(startDate, endDate) {
-    const workingDays = getWorkingDaysInRange(startDate, endDate);
-
-    if (workingDays.length === 0) {
-        return 'No working days';
-    }
-
-    const start = parseDate(workingDays[0]);
-    const end = parseDate(workingDays[workingDays.length - 1]);
-
-    const startStr = formatDateFriendly(workingDays[0]);
-    const endStr = formatDateFriendly(workingDays[workingDays.length - 1]);
-
-    if (workingDays.length === 1) {
         return startStr;
     }
 
@@ -1052,7 +1229,7 @@ function formatDateFriendly(dateStr) {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const day = dayNames[date.getDay()];
     const dayNum = date.getDate();
-    const month = MONTH_NAMES[date.getMonth()].slice(0, 3);
+    const month = MONTH_ABBREV[date.getMonth()];
 
     return `${day} ${dayNum} ${month}`;
 }
