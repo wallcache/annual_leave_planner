@@ -172,7 +172,8 @@ function cacheElements() {
     elements.bankHolidaysUl = document.getElementById('bank-holidays-ul');
     elements.miniYearSidebar = document.getElementById('mini-year-sidebar');
     elements.collapseSidebarBtn = document.getElementById('collapse-sidebar');
-    elements.expandSidebarBtn = document.getElementById('expand-sidebar');
+    elements.miniYearCompact = document.getElementById('mini-year-compact');
+    elements.miniYearCompactGrid = document.getElementById('mini-year-compact-grid');
 
     elements.summaryRemaining = document.getElementById('summary-remaining');
     elements.summaryUsed = document.getElementById('summary-used');
@@ -235,7 +236,7 @@ function setupEventListeners() {
 
     // Sidebar collapse/expand
     elements.collapseSidebarBtn.addEventListener('click', collapseSidebar);
-    elements.expandSidebarBtn.addEventListener('click', expandSidebar);
+    elements.miniYearCompact.addEventListener('click', expandSidebar);
 
     // Calendar drag selection
     elements.calendar.addEventListener('mousedown', handleCalendarMouseDown);
@@ -302,6 +303,7 @@ function showApp() {
 
     renderCalendar();
     renderMiniYear();
+    renderCompactYear();
     renderBankHolidaysList();
     updateSummary();
 }
@@ -332,6 +334,7 @@ function selectYear(year) {
 
     renderCalendar();
     renderMiniYear();
+    renderCompactYear();
     renderBankHolidaysList();
     updateSummary();
 }
@@ -347,13 +350,13 @@ function updateYearDropdownActive() {
 // =============================================================================
 
 function collapseSidebar() {
-    elements.miniYearSidebar.classList.add('collapsed');
-    elements.expandSidebarBtn.classList.remove('hidden');
+    elements.miniYearSidebar.classList.add('hidden');
+    elements.miniYearCompact.classList.remove('hidden');
 }
 
 function expandSidebar() {
-    elements.miniYearSidebar.classList.remove('collapsed');
-    elements.expandSidebarBtn.classList.add('hidden');
+    elements.miniYearSidebar.classList.remove('hidden');
+    elements.miniYearCompact.classList.add('hidden');
 }
 
 // =============================================================================
@@ -684,6 +687,68 @@ function renderBankHolidaysList() {
     });
 }
 
+function renderCompactYear() {
+    elements.miniYearCompactGrid.innerHTML = '';
+
+    const year = state.config.year;
+    const bankHolidays = getBankHolidayDates();
+    const workingDays = state.config.workingDays;
+
+    for (let month = 0; month < 12; month++) {
+        const compactMonth = document.createElement('div');
+        compactMonth.className = 'compact-month';
+
+        const label = document.createElement('span');
+        label.className = 'compact-month-label';
+        label.textContent = MONTH_ABBREV[month].charAt(0);
+        compactMonth.appendChild(label);
+
+        const grid = document.createElement('div');
+        grid.className = 'compact-month-days';
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        // Get starting position (Mon = 0)
+        let startDayOfWeek = firstDay.getDay();
+        startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+
+        // Empty cells
+        for (let i = 0; i < startDayOfWeek; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'compact-day empty';
+            grid.appendChild(empty);
+        }
+
+        // Days
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+            const date = new Date(year, month, day);
+            const dateStr = formatDate(date);
+            const dayOfWeek = date.getDay();
+
+            const compactDay = document.createElement('div');
+            compactDay.className = 'compact-day';
+
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                compactDay.classList.add('is-weekend');
+            }
+
+            if (bankHolidays.includes(dateStr)) {
+                compactDay.classList.add('is-bank-holiday');
+            }
+
+            if (getLeaveBlockForDate(dateStr)) {
+                compactDay.classList.add('has-leave');
+            }
+
+            grid.appendChild(compactDay);
+        }
+
+        compactMonth.appendChild(grid);
+        elements.miniYearCompactGrid.appendChild(compactMonth);
+    }
+}
+
 // =============================================================================
 // Drag Selection
 // =============================================================================
@@ -923,6 +988,7 @@ function handleLabelSubmit(e) {
     clearSelection();
     renderCalendar();
     renderMiniYear();
+    renderCompactYear();
     updateSummary();
 }
 
@@ -986,6 +1052,7 @@ function handleDeleteLeave() {
         saveState();
         renderCalendar();
         renderMiniYear();
+        renderCompactYear();
         updateSummary();
 
         showUndoToast();
@@ -1025,6 +1092,7 @@ function undoLastAction() {
     saveState();
     renderCalendar();
     renderMiniYear();
+    renderCompactYear();
     updateSummary();
 
     elements.undoToast.classList.add('hidden');

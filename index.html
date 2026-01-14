@@ -183,8 +183,17 @@
             </div>
         </div>
 
-        <!-- Year Overview Panel (Floating) -->
-        <aside id="mini-year-sidebar" class="glass-panel collapsed">
+        <!-- Compressed Year Overview (Always visible on right) -->
+        <aside id="mini-year-compact" class="glass-panel" title="Click to expand">
+            <div class="compact-header">
+                <span class="compact-title">Year Overview</span>
+                <span class="expand-icon"></span>
+            </div>
+            <div id="mini-year-compact-grid"></div>
+        </aside>
+
+        <!-- Expanded Year Overview Panel (Floating overlay from right) -->
+        <aside id="mini-year-sidebar" class="glass-panel hidden">
             <div class="sidebar-header">
                 <h3 class="sidebar-title">Year Overview</h3>
                 <button id="collapse-sidebar" class="btn-collapse" title="Close">
@@ -199,12 +208,6 @@
                 </div>
             </div>
         </aside>
-
-        <!-- Expand Year Overview Button -->
-        <button id="expand-sidebar" class="glass-panel" title="Show year overview">
-            <span class="expand-icon"></span>
-            <span>Year Overview</span>
-        </button>
 
         <!-- Main Content Area -->
         <div id="main-content">

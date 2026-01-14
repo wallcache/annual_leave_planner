@@ -526,25 +526,114 @@ body {
 }
 
 /* ==========================================================================
-   Mini Year Sidebar (Floating Overlay)
+   Mini Year Sidebar (Compact + Expanded Views)
    ========================================================================== */
 
+/* Compact view - always visible on right above summary */
+#mini-year-compact {
+    position: fixed;
+    bottom: 220px;
+    right: var(--space-xl);
+    z-index: 100;
+    padding: var(--space-md);
+    width: 200px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+#mini-year-compact:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.compact-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+}
+
+.compact-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.expand-icon {
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-right: 5px solid var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+#mini-year-compact:hover .expand-icon {
+    border-right-color: var(--accent-primary);
+}
+
+/* Compact mini year grid - super compressed 4x3 */
+#mini-year-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+}
+
+.compact-month {
+    text-align: center;
+}
+
+.compact-month-label {
+    font-size: 0.5rem;
+    color: var(--text-muted);
+    margin-bottom: 1px;
+    display: block;
+}
+
+.compact-month-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+}
+
+.compact-day {
+    width: 4px;
+    height: 4px;
+    border-radius: 1px;
+    background: var(--bg-tertiary);
+}
+
+.compact-day.has-leave {
+    background: var(--accent-primary);
+}
+
+.compact-day.is-bank-holiday {
+    background: var(--holiday-color);
+}
+
+.compact-day.is-weekend {
+    background: var(--bg-secondary);
+}
+
+/* Expanded sidebar - floating overlay from right */
 #mini-year-sidebar {
     position: fixed;
     top: 80px;
-    left: var(--space-lg);
-    z-index: 150;
-    width: 340px;
+    right: var(--space-xl);
+    z-index: 200;
+    width: 360px;
     padding: var(--space-lg);
     max-height: calc(100vh - 100px);
     overflow-y: auto;
-    animation: slideInLeft var(--transition-normal);
+    animation: slideInRight var(--transition-normal);
 }
 
-@keyframes slideInLeft {
+@keyframes slideInRight {
     from {
         opacity: 0;
-        transform: translateX(-20px);
+        transform: translateX(20px);
     }
     to {
         opacity: 1;
@@ -552,7 +641,7 @@ body {
     }
 }
 
-#mini-year-sidebar.collapsed {
+#mini-year-sidebar.hidden {
     display: none;
 }
 
@@ -595,41 +684,6 @@ body {
 
 .collapse-icon::before {
     content: '×';
-}
-
-/* Expand button - fixed position */
-#expand-sidebar {
-    position: fixed;
-    top: 80px;
-    left: var(--space-lg);
-    z-index: 100;
-    padding: var(--space-sm) var(--space-md);
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    cursor: pointer;
-    border: none;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    transition: all var(--transition-fast);
-}
-
-#expand-sidebar:hover {
-    color: var(--text-primary);
-    border-color: var(--accent-primary);
-}
-
-.expand-icon {
-    width: 0;
-    height: 0;
-    border-top: 5px solid transparent;
-    border-bottom: 5px solid transparent;
-    border-left: 6px solid var(--text-secondary);
-}
-
-#expand-sidebar:hover .expand-icon {
-    border-left-color: var(--text-primary);
 }
 
 #sidebar-content {
@@ -1258,7 +1312,8 @@ body {
    ========================================================================== */
 
 @media (max-width: 900px) {
-    #mini-year-sidebar {
+    #mini-year-sidebar,
+    #mini-year-compact {
         display: none;
     }
 
