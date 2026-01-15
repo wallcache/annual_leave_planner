@@ -1,4 +1,4 @@
-# Leavewise - Annual Leave Planner
+# Timwell - Annual Leave Planner
 
 A beautiful, single-page web application that helps you plan your annual leave for a given year in the UK.
 
