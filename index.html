@@ -118,12 +118,14 @@
                     </button>
                     <div class="advanced-content hidden" id="advanced-content">
                         <div class="form-group">
-                            <label class="toggle-label">
-                                <input type="checkbox" id="bank-holidays-use-al">
-                                <span class="toggle-switch"></span>
-                                <span class="toggle-text">Bank holidays require annual leave</span>
-                            </label>
-                            <p class="hint advanced-hint">Check this if you must use AL to take bank holidays off</p>
+                            <label>Bank holidays require annual leave?</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label checkbox-wide" id="bank-holiday-toggle">
+                                    <input type="checkbox" id="bank-holidays-use-al">
+                                    <span>Yes, I must use AL for bank holidays</span>
+                                </label>
+                            </div>
+                            <p class="hint advanced-hint">Leave unchecked if bank holidays are free</p>
                         </div>
 
                         <div class="form-group">

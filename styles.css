@@ -1763,75 +1763,20 @@ body.leave-dragging * {
     font-size: 0.75rem;
 }
 
-/* Toggle Switch */
-.toggle-label {
+/* Wide checkbox for single options */
+.checkbox-label.checkbox-wide {
+    width: auto;
+    padding: var(--space-sm) var(--space-md);
+    height: auto;
+}
+
+.checkbox-label.checkbox-wide span {
+    position: static;
     display: flex;
     align-items: center;
-    gap: var(--space-md);
-    cursor: pointer;
-    padding: var(--space-sm) var(--space-md);
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
-    position: relative;
-}
-
-.toggle-label:hover {
-    border-color: var(--accent-primary);
-    background: var(--bg-tertiary);
-}
-
-.toggle-label input[type="checkbox"] {
-    position: absolute;
-    left: -9999px;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-    pointer-events: none;
-}
-
-.toggle-switch {
-    position: relative;
-    width: 44px;
-    height: 24px;
-    background: var(--bg-primary);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    transition: all var(--transition-fast);
-    flex-shrink: 0;
-}
-
-.toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 16px;
-    height: 16px;
-    background: var(--text-muted);
-    border-radius: 50%;
-    transition: all var(--transition-fast);
-}
-
-.toggle-label input:checked + .toggle-switch {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-}
-
-.toggle-label input:checked + .toggle-switch::after {
-    left: 23px;
-    background: white;
-}
-
-.toggle-text {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    flex: 1;
-}
-
-.toggle-label:has(input:checked) .toggle-text {
-    color: var(--text-primary);
+    justify-content: flex-start;
+    font-size: 0.8125rem;
+    white-space: nowrap;
 }
 
 /* Leave Year Start Selects */
