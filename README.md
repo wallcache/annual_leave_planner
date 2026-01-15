@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <img src="main_logo.png" alt="Timewell Logo" width="400">
 </p>
 
