@@ -531,7 +531,11 @@ body {
 .header-left {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
+    gap: var(--space-sm);
+}
+
+.header-left .year-badge {
+    margin-left: var(--space-sm);
 }
 
 .logo-icon {
@@ -1044,13 +1048,21 @@ body {
     border-radius: 50%;
 }
 
-/* Non-working day */
+/* Non-working day - same styling as weekends */
 .day-tile.non-working {
-    background: rgba(255, 255, 255, 0.01);
+    background: rgba(255, 255, 255, 0.02) !important;
 }
 
 .day-tile.non-working .day-number {
-    opacity: 0.4;
+    color: var(--text-muted);
+}
+
+.day-tile.non-working.month-even {
+    background: rgba(35, 35, 45, 0.5) !important;
+}
+
+.day-tile.non-working.month-odd {
+    background: rgba(25, 25, 32, 0.5) !important;
 }
 
 /* Selection States */
@@ -1144,6 +1156,16 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.02em;
     z-index: 5;
+}
+
+/* Dual labels - when leave starts on a bank holiday */
+.day-tile.dual-labels .bank-holiday-label {
+    left: 2px;
+}
+
+.day-tile.dual-labels .leave-label {
+    left: auto;
+    right: 2px;
 }
 
 /* Edit controls on hover */
@@ -1266,6 +1288,10 @@ body.leave-dragging * {
 .feedback-value.highlight {
     color: var(--accent-success);
     font-size: 1.125rem;
+}
+
+.feedback-row.roi .feedback-value {
+    color: var(--accent-secondary);
 }
 
 /* ==========================================================================
@@ -1678,4 +1704,131 @@ body.leave-dragging * {
     position: absolute;
     left: calc(-1 * var(--space-md));
     color: var(--accent-secondary);
+}
+
+/* ==========================================================================
+   Advanced Settings
+   ========================================================================== */
+
+.advanced-settings-section {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--glass-border);
+}
+
+.advanced-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: var(--space-xs) 0;
+    transition: color var(--transition-fast);
+}
+
+.advanced-toggle:hover {
+    color: var(--text-secondary);
+}
+
+.advanced-toggle .toggle-icon {
+    font-size: 0.625rem;
+    transition: transform var(--transition-fast);
+}
+
+.advanced-toggle.open .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.advanced-content {
+    padding-top: var(--space-md);
+}
+
+.advanced-hint {
+    margin-top: var(--space-xs);
+    margin-left: 0;
+}
+
+/* Toggle Switch */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--glass-border);
+    border-radius: 11px;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+}
+
+.toggle-label input:checked + .toggle-switch {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.toggle-label input:checked + .toggle-switch::after {
+    left: 20px;
+    background: white;
+}
+
+.toggle-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Leave Year Start Selects */
+.leave-year-start {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.leave-year-start select {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.leave-year-start select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+#leave-year-day {
+    max-width: 80px;
 }

@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timewell - Annual Leave Planner</title>
+    <meta name="description" content="Plan your annual leave with clarity. Visual leave planning with ROI calculations for your time off.">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Timewell - Annual Leave Planner">
+    <meta property="og:description" content="Plan your annual leave with clarity. Visual leave planning with ROI calculations for your time off.">
+    <meta property="og:image" content="social_banner.jpg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Timewell - Annual Leave Planner">
+    <meta name="twitter:description" content="Plan your annual leave with clarity. Visual leave planning with ROI calculations for your time off.">
+    <meta name="twitter:image" content="social_banner.jpg">
+
     <link rel="icon" type="image/png" href="twAsset_logo.png">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -92,6 +106,48 @@
                             <input type="checkbox" name="workday" value="0">
                             <span>Sun</span>
                         </label>
+                    </div>
+                </div>
+
+                <!-- Advanced Settings -->
+                <div class="advanced-settings-section">
+                    <button type="button" class="advanced-toggle" id="advanced-toggle">
+                        <span class="toggle-icon">▶</span>
+                        <span>Advanced Settings</span>
+                    </button>
+                    <div class="advanced-content hidden" id="advanced-content">
+                        <div class="form-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="include-bank-holidays" checked>
+                                <span class="toggle-switch"></span>
+                                <span class="toggle-text">Bank holidays are free (don't count as leave)</span>
+                            </label>
+                            <p class="hint advanced-hint">Turn off if you must use annual leave for bank holidays</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Leave year starts</label>
+                            <div class="leave-year-start">
+                                <select id="leave-year-month">
+                                    <option value="0" selected>January</option>
+                                    <option value="1">February</option>
+                                    <option value="2">March</option>
+                                    <option value="3">April</option>
+                                    <option value="4">May</option>
+                                    <option value="5">June</option>
+                                    <option value="6">July</option>
+                                    <option value="7">August</option>
+                                    <option value="8">September</option>
+                                    <option value="9">October</option>
+                                    <option value="10">November</option>
+                                    <option value="11">December</option>
+                                </select>
+                                <select id="leave-year-day">
+                                    <option value="1" selected>1</option>
+                                </select>
+                            </div>
+                            <p class="hint advanced-hint">For April-April leave years, select April 1st</p>
+                        </div>
                     </div>
                 </div>
 
@@ -197,6 +253,10 @@
                 <div class="feedback-row">
                     <span class="feedback-label">Total days off:</span>
                     <span id="feedback-total" class="feedback-value highlight"></span>
+                </div>
+                <div class="feedback-row roi">
+                    <span class="feedback-label">ROI:</span>
+                    <span id="feedback-roi" class="feedback-value"></span>
                 </div>
             </div>
         </div>

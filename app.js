@@ -213,6 +213,7 @@ function cacheElements() {
     elements.selectionFeedback = document.getElementById('selection-feedback');
     elements.feedbackDays = document.getElementById('feedback-days');
     elements.feedbackTotal = document.getElementById('feedback-total');
+    elements.feedbackRoi = document.getElementById('feedback-roi');
 
     // Today button removed - today is now auto-highlighted in calendar
     elements.settingsBtn = document.getElementById('settings-btn');
@@ -231,6 +232,10 @@ function setupEventListeners() {
     // Setup form
     elements.setupForm.addEventListener('submit', handleSetupSubmit);
     document.getElementById('start-over-btn').addEventListener('click', handleStartOver);
+
+    // Advanced settings toggle
+    document.getElementById('advanced-toggle').addEventListener('click', toggleAdvancedSettings);
+    document.getElementById('leave-year-month').addEventListener('change', updateDayOptions);
 
     // Label form
     elements.labelForm.addEventListener('submit', handleLabelSubmit);
@@ -333,6 +338,15 @@ function showSetup() {
         document.querySelectorAll('input[name="workday"]').forEach(cb => {
             cb.checked = state.config.workingDays.includes(parseInt(cb.value));
         });
+
+        // Advanced settings
+        document.getElementById('include-bank-holidays').checked =
+            state.config.bankHolidaysFree !== false; // Default to true
+        document.getElementById('leave-year-month').value =
+            state.config.leaveYearMonth || 0;
+        updateDayOptions();
+        document.getElementById('leave-year-day').value =
+            state.config.leaveYearDay || 1;
     }
 }
 
@@ -388,7 +402,20 @@ function handleSetupSubmit(e) {
         return;
     }
 
-    state.config = { allowance, year, region, workingDays };
+    // Advanced settings
+    const bankHolidaysFree = document.getElementById('include-bank-holidays').checked;
+    const leaveYearMonth = parseInt(document.getElementById('leave-year-month').value);
+    const leaveYearDay = parseInt(document.getElementById('leave-year-day').value);
+
+    state.config = {
+        allowance,
+        year,
+        region,
+        workingDays,
+        bankHolidaysFree,
+        leaveYearMonth,
+        leaveYearDay
+    };
     saveState();
     showApp();
 }
@@ -405,6 +432,40 @@ function handleOverlayClick(e) {
             elements.setupOverlay.classList.add('hidden');
             elements.app.classList.remove('hidden');
         }
+    }
+}
+
+function toggleAdvancedSettings() {
+    const toggle = document.getElementById('advanced-toggle');
+    const content = document.getElementById('advanced-content');
+
+    toggle.classList.toggle('open');
+    content.classList.toggle('hidden');
+}
+
+function updateDayOptions() {
+    const monthSelect = document.getElementById('leave-year-month');
+    const daySelect = document.getElementById('leave-year-day');
+    const month = parseInt(monthSelect.value);
+
+    // Get number of days in the selected month (using a non-leap year as default)
+    const daysInMonth = new Date(2024, month + 1, 0).getDate();
+
+    // Store current selection
+    const currentDay = parseInt(daySelect.value) || 1;
+
+    // Clear and repopulate
+    daySelect.innerHTML = '';
+    for (let i = 1; i <= daysInMonth; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        daySelect.appendChild(option);
+    }
+
+    // Restore selection if valid
+    if (currentDay <= daysInMonth) {
+        daySelect.value = currentDay;
     }
 }
 
@@ -436,8 +497,6 @@ function toggleSummaryExpanded() {
                     <li><strong>Total days off</strong> = your leave + connected weekends + bank holidays</li>
                 </ul>
                 <p>For example, taking Monday to Friday off gives you 9 days off (5 leave days + 2 weekend days either side) = 1.8x ROI. Add a bank holiday and you could get 10 days!</p>
-                <h4>About Timewell</h4>
-                <p>Built to make annual leave planning simple and visual. No more wrestling with clunky HR systems - just clarity on your year ahead.</p>
             </div>
         `;
         panel.appendChild(expandedContent);
@@ -457,6 +516,16 @@ function handleStartOver() {
     document.querySelectorAll('input[name="workday"]').forEach(cb => {
         cb.checked = [1, 2, 3, 4, 5].includes(parseInt(cb.value));
     });
+
+    // Reset advanced settings
+    document.getElementById('include-bank-holidays').checked = true;
+    document.getElementById('leave-year-month').value = 0;
+    updateDayOptions();
+    document.getElementById('leave-year-day').value = 1;
+
+    // Close advanced settings if open
+    document.getElementById('advanced-toggle').classList.remove('open');
+    document.getElementById('advanced-content').classList.add('hidden');
 
     // Show confirmation toast
     showClearToast();
@@ -496,6 +565,10 @@ function renderCalendar() {
     const bankHolidayMap = {};
     bankHolidays.forEach(h => { bankHolidayMap[h.date] = h.name; });
 
+    // Also get next year's bank holidays for January display
+    const nextYearHolidays = getBankHolidaysForYear(year + 1);
+    nextYearHolidays.forEach(h => { bankHolidayMap[h.date] = h.name; });
+
     // Weekday header
     const weekdayHeader = document.createElement('div');
     weekdayHeader.className = 'weekday-header';
@@ -515,14 +588,23 @@ function renderCalendar() {
     const firstDayOfYear = new Date(year, 0, 1);
     const lastDayOfYear = new Date(year, 11, 31);
 
+    // Calculate end date: 2 weeks after Dec 31, ending on a Sunday
+    let extendedEnd = new Date(lastDayOfYear);
+    extendedEnd.setDate(extendedEnd.getDate() + 14); // Add 2 weeks
+    // Extend to the next Sunday if not already on Sunday
+    const extendedDayOfWeek = extendedEnd.getDay();
+    if (extendedDayOfWeek !== 0) {
+        extendedEnd.setDate(extendedEnd.getDate() + (7 - extendedDayOfWeek));
+    }
+
     // Find the Monday of the week containing Jan 1
     let currentDate = new Date(firstDayOfYear);
     const dayOfWeek = currentDate.getDay();
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     currentDate.setDate(currentDate.getDate() + mondayOffset);
 
-    // Generate weeks until we pass Dec 31
-    while (currentDate <= lastDayOfYear || currentDate.getDay() !== 1) {
+    // Generate weeks until we reach the extended end
+    while (currentDate <= extendedEnd) {
         const weekRow = document.createElement('div');
         weekRow.className = 'week-row';
 
@@ -533,9 +615,6 @@ function renderCalendar() {
         }
 
         weeksContainer.appendChild(weekRow);
-
-        // Stop if we've completed the week containing Dec 31
-        if (currentDate.getFullYear() > year) break;
     }
 
     elements.calendar.appendChild(weeksContainer);
@@ -549,9 +628,13 @@ function createDayTile(date, year, todayStr, bankHolidayMap) {
     const dayOfWeek = date.getDay();
     const dayOfMonth = date.getDate();
     const month = date.getMonth();
+    const dateYear = date.getFullYear();
 
-    // Check if date is in the target year
-    if (date.getFullYear() !== year) {
+    // Check if date is in the target year or the extended next year period
+    const isNextYear = dateYear === year + 1;
+
+    // For dates before the target year, show as empty
+    if (dateYear < year) {
         tile.classList.add('empty');
         tile.innerHTML = '<span class="day-number"></span>';
         return tile;
@@ -559,8 +642,10 @@ function createDayTile(date, year, todayStr, bankHolidayMap) {
 
     tile.dataset.date = dateStr;
 
-    // Alternating month colors
-    if (month % 2 === 0) {
+    // Alternating month colors - continue the pattern into next year
+    // Use (month + yearOffset * 12) to keep alternation consistent
+    const effectiveMonth = isNextYear ? month + 12 : month;
+    if (effectiveMonth % 2 === 0) {
         tile.classList.add('month-even');
     } else {
         tile.classList.add('month-odd');
@@ -668,6 +753,11 @@ function applyLeaveStyles(tile, dateStr, leaveBlock) {
         labelEl.className = 'leave-label';
         labelEl.textContent = leaveBlock.label;
         tile.appendChild(labelEl);
+
+        // Check if there's also a bank holiday label - add class for dual-label styling
+        if (tile.classList.contains('bank-holiday')) {
+            tile.classList.add('dual-labels');
+        }
     }
 
     // Add edit button
@@ -691,6 +781,11 @@ function getBankHolidayDates() {
 function getBankHolidays() {
     const { year, region } = state.config;
     return BANK_HOLIDAYS[region]?.[year] || [];
+}
+
+function getBankHolidaysForYear(targetYear) {
+    const { region } = state.config;
+    return BANK_HOLIDAYS[region]?.[targetYear] || [];
 }
 
 function getLeaveBlockForDate(dateStr) {
@@ -1015,6 +1110,14 @@ function updateSelectionFeedback() {
 
     elements.feedbackDays.textContent = roi.leaveDaysUsed;
     elements.feedbackTotal.textContent = roi.totalDaysOff;
+
+    // Calculate and display ROI
+    if (roi.leaveDaysUsed > 0) {
+        const roiValue = (roi.totalDaysOff / roi.leaveDaysUsed).toFixed(1);
+        elements.feedbackRoi.textContent = `${roiValue}x`;
+    } else {
+        elements.feedbackRoi.textContent = '-';
+    }
 }
 
 function hideSelectionFeedback() {
@@ -1038,13 +1141,18 @@ function clearSelection() {
 
 function calculateROIWithConnectedWeekends(startDate, endDate) {
     const bankHolidays = getBankHolidayDates();
+    // Also get next year's bank holidays for January selections
+    const nextYearHolidays = getBankHolidaysForYear(state.config.year + 1);
+    const allBankHolidays = [...bankHolidays, ...nextYearHolidays.map(h => h.date)];
+
     const { workingDays } = state.config;
+    const bankHolidaysFree = state.config.bankHolidaysFree !== false; // Default to true
 
     // Expand range to include connected weekends
     let expandedStart = parseDate(startDate);
     let expandedEnd = parseDate(endDate);
 
-    // Expand backwards to include connected weekends
+    // Expand backwards to include connected weekends (and bank holidays if they're free)
     while (true) {
         const prevDay = new Date(expandedStart);
         prevDay.setDate(prevDay.getDate() - 1);
@@ -1053,16 +1161,16 @@ function calculateROIWithConnectedWeekends(startDate, endDate) {
 
         // Check if previous day is a weekend or bank holiday
         const isWeekend = prevDayOfWeek === 0 || prevDayOfWeek === 6;
-        const isBankHoliday = bankHolidays.includes(prevDateStr);
+        const isBankHoliday = allBankHolidays.includes(prevDateStr);
 
-        if (isWeekend || isBankHoliday) {
+        if (isWeekend || (isBankHoliday && bankHolidaysFree)) {
             expandedStart = prevDay;
         } else {
             break;
         }
     }
 
-    // Expand forwards to include connected weekends
+    // Expand forwards to include connected weekends (and bank holidays if they're free)
     while (true) {
         const nextDay = new Date(expandedEnd);
         nextDay.setDate(nextDay.getDate() + 1);
@@ -1071,9 +1179,9 @@ function calculateROIWithConnectedWeekends(startDate, endDate) {
 
         // Check if next day is a weekend or bank holiday
         const isWeekend = nextDayOfWeek === 0 || nextDayOfWeek === 6;
-        const isBankHoliday = bankHolidays.includes(nextDateStr);
+        const isBankHoliday = allBankHolidays.includes(nextDateStr);
 
-        if (isWeekend || isBankHoliday) {
+        if (isWeekend || (isBankHoliday && bankHolidaysFree)) {
             expandedEnd = nextDay;
         } else {
             break;
@@ -1093,10 +1201,16 @@ function calculateROIWithConnectedWeekends(startDate, endDate) {
         // Only count leave days for the original selection range
         if (dateStr >= startDate && dateStr <= endDate) {
             const isWorkingDay = workingDays.includes(dayOfWeek);
-            const isBankHoliday = bankHolidays.includes(dateStr);
+            const isBankHoliday = allBankHolidays.includes(dateStr);
 
-            if (isWorkingDay && !isBankHoliday) {
-                leaveDaysUsed++;
+            // If bank holidays are free, don't count them as leave days
+            // If bank holidays are NOT free, they count as leave days if they're working days
+            if (isWorkingDay) {
+                if (isBankHoliday && bankHolidaysFree) {
+                    // Bank holiday is free, don't count
+                } else {
+                    leaveDaysUsed++;
+                }
             }
         }
     }
