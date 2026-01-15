@@ -1,45 +1,92 @@
-# Timwell - Annual Leave Planner
+# Timewell - Annual Leave Planner
 
-A beautiful, single-page web application that helps you plan your annual leave for a given year in the UK.
+A beautiful, intuitive web application for planning your annual leave with maximum efficiency. Designed for UK workers who want to visualise their year ahead and make the most of their holiday allowance.
+
+**Live at: [timewell.uk](https://timewell.uk)**
+
+## Why Timewell?
+
+Planning annual leave shouldn't require wrestling with clunky HR systems or confusing spreadsheets. Timewell was built out of frustration with:
+
+- **Complex HR portals** - Workday, SAP, and other enterprise systems that make simple tasks complicated
+- **Lack of visualisation** - Most tools show you a list, not a calendar view of your year
+- **No efficiency insights** - Nobody tells you how to maximise your days off by leveraging weekends and bank holidays
+
+Timewell solves all of this with a clean, visual interface that shows your entire year at a glance.
 
 ## Features
 
-- **Year-at-a-glance calendar** - View your entire year in one scrollable view
-- **Drag to select leave** - Click and drag across dates to select leave periods
-- **Live ROI calculation** - See how many leave days you're using vs total days off gained
-- **UK Bank Holidays** - Automatically includes bank holidays for England & Wales or Scotland
-- **Custom working days** - Configure your working week (Mon-Fri by default)
-- **Persistent storage** - All data saved to localStorage
-- **Export options** - Generate copyable message for your manager or export to CSV
+### Core Functionality
+- **Year-at-a-glance calendar** - See your entire year in one scrollable view with clear month separation
+- **Click-to-select leave** - Click a start date, then click an end date to book leave. Simple.
+- **Drag selection** - Or drag across dates for quick selection
+- **UK Bank Holidays** - Automatically includes bank holidays for England & Wales or Scotland (2024-2029)
+- **Custom working days** - Configure your working week (Mon-Fri by default, or any combination)
 
-## Deployment on Render
+### ROI Insights
+- **Live ROI calculation** - See your "Return on Investment" as you plan
+- **Days off gained** - Understand how many actual days off you get vs leave days used
+- **Smart weekend bridging** - The ROI calculation automatically includes connected weekends and bank holidays
 
-### Static Site Deployment
+### Practical Tools
+- **Generate Plan** - Export a clean list of dates to book with your line manager
+- **Manager Message** - Auto-generate a polite email requesting your leave
+- **Persistent storage** - All data saved locally in your browser
+- **Undo support** - Made a mistake? Ctrl+Z to undo
 
-1. **Push to GitHub** (or connect your existing repo)
+### Visual Polish
+- **Dark glassmorphic theme** - Easy on the eyes, inspired by Apple and Linear design
+- **Today highlighting** - Always know where you are in the year
+- **Past day dimming** - Focus on what's ahead
+- **Alternating month colours** - Easily distinguish month boundaries
 
-2. **Create a new Static Site on Render**
-   - Go to [render.com](https://render.com)
-   - Click "New" → "Static Site"
-   - Connect your repository
+## How ROI Works
 
-3. **Configure the Static Site**
-   - **Name**: `leavewise` (or your preferred name)
-   - **Branch**: `main`
-   - **Build Command**: Leave empty (no build step needed)
-   - **Publish Directory**: `.` (root directory)
+ROI (Return on Investment) shows how efficiently you're using your leave days.
 
-4. **Deploy**
-   - Click "Create Static Site"
-   - Render will deploy your site and provide a URL
+**Formula:** `Total Days Off / Leave Days Used`
+
+For example:
+- Take Thursday and Friday off before a weekend
+- You use **2 leave days** but get **4 days off** (Thu, Fri, Sat, Sun)
+- ROI = 4/2 = **2.0x**
+
+The calculation automatically extends to include:
+- Connected weekends before/after your leave
+- Bank holidays that touch your leave period
+- Your configured non-working days
+
+## Deployment
+
+### Hosted on Cloudflare Pages
+
+Timewell is hosted on Cloudflare Pages at [timewell.uk](https://timewell.uk).
+
+To deploy your own instance:
+
+1. Fork or clone this repository
+2. Connect to Cloudflare Pages
+3. Configure:
+   - **Build command:** (leave empty - no build step)
+   - **Build output directory:** `/` (root)
+4. Deploy
 
 ### Local Development
 
-Simply open `index.html` in your browser - no build tools or server required.
+Simply open `index.html` in your browser - no build tools, no server, no dependencies.
+
+```bash
+# Clone the repo
+git clone https://github.com/yourusername/timewell.git
+
+# Open in browser
+open index.html
+```
 
 ## Files
 
 ```
+timewell/
 ├── index.html    # Main HTML structure
 ├── styles.css    # Dark glassmorphic theme
 ├── app.js        # All application logic
@@ -52,6 +99,20 @@ Simply open `index.html` in your browser - no build tools or server required.
 - Firefox
 - Safari
 - Edge
+
+## Privacy
+
+All data is stored locally in your browser's localStorage. Nothing is sent to any server. Your leave plans stay on your device.
+
+## Contributing
+
+Contributions welcome! Feel free to open issues or submit pull requests.
+
+## Credits
+
+Designed and built by **Hal Wall** - Data Engineer & Graphic Designer
+
+If you find Timewell useful, consider [buying me a coffee](https://buymeacoffee.com/halwall)!
 
 ## License
 

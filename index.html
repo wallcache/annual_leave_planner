@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leavewise - Annual Leave Planner</title>
+    <title>Timewell - Annual Leave Planner</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Clear Toast (outside app so visible over settings) -->
+    <div id="clear-toast" class="glass-panel hidden">
+        <span>Previously selected days off have been cleared</span>
+    </div>
+
     <!-- Setup Panel - Modal overlay on first load -->
     <div id="setup-overlay" class="overlay">
         <div id="setup-panel" class="glass-panel modal">
-            <h1>Welcome to Leavewise</h1>
+            <h1>Welcome to Timewell</h1>
             <p class="subtitle">Plan your annual leave with clarity</p>
 
             <form id="setup-form">
@@ -165,25 +170,15 @@
         </div>
     </div>
 
-    <!-- Year Selector Dropdown -->
-    <div id="year-dropdown" class="glass-panel hidden">
-        <button class="year-option" data-year="2025">2025</button>
-        <button class="year-option" data-year="2026">2026</button>
-        <button class="year-option" data-year="2027">2027</button>
-        <button class="year-option" data-year="2028">2028</button>
-        <button class="year-option" data-year="2029">2029</button>
-    </div>
-
     <!-- Main App Container -->
     <div id="app" class="hidden">
         <!-- Header -->
         <header id="header">
             <div class="header-left">
-                <h1 class="logo">Leavewise</h1>
-                <button id="year-display" class="year-badge clickable"></button>
+                <h1 class="logo">Timewell</h1>
+                <span id="year-display" class="year-badge"></span>
             </div>
             <div class="header-right">
-                <button id="jump-today" class="btn-icon" title="Jump to today">Today</button>
                 <button id="settings-btn" class="btn-icon" title="Settings">Settings</button>
                 <button id="generate-plan-btn" class="btn-primary">Generate Plan</button>
             </div>
@@ -263,6 +258,29 @@
             <span>Leave deleted</span>
             <button id="undo-btn" class="btn-link">Undo</button>
         </div>
+
+
+        <!-- Click Selection Hint -->
+        <div id="click-hint" class="glass-panel hidden">
+            <span>Click end date to complete selection</span>
+            <button id="hide-hint-forever" class="btn-link">Don't show again</button>
+        </div>
+
+        <!-- Footer -->
+        <footer id="app-footer">
+            <div class="footer-content">
+                <div class="footer-designer">
+                    <p><strong>Designed and Built<br>by Hal Wall</strong></p>
+                </div>
+                <div class="footer-about">
+                    <p>This is annual leave planning stripped of its usual clunkiness and dressed in clarity. It offers delightful visual insight into your year ahead and calculates the ROI of your relaxation; because if one must escape, one should do it with mathematical precision.</p>
+                </div>
+                <div class="footer-support">
+                    <p><em>A small contribution keeps this alive.</em></p>
+                    <a href="https://buymeacoffee.com/halwall" target="_blank" rel="noopener noreferrer" class="coffee-link">Buy me a coffee</a>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <script src="app.js"></script>
