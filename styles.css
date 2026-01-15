@@ -1550,7 +1550,7 @@ body.leave-dragging * {
 
 .footer-content {
     display: grid;
-    grid-template-columns: 180px minmax(300px, 600px) 180px;
+    grid-template-columns: 180px minmax(300px, 750px) 180px;
     gap: var(--space-xl);
     align-items: start;
     justify-content: space-between;
