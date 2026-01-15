@@ -340,8 +340,8 @@ function showSetup() {
         });
 
         // Advanced settings
-        document.getElementById('include-bank-holidays').checked =
-            state.config.bankHolidaysFree !== false; // Default to true
+        document.getElementById('bank-holidays-use-al').checked =
+            state.config.bankHolidaysUseAL === true; // Default to false (unchecked)
         document.getElementById('leave-year-month').value =
             state.config.leaveYearMonth || 0;
         updateDayOptions();
@@ -354,7 +354,16 @@ function showApp() {
     elements.setupOverlay.classList.add('hidden');
     elements.app.classList.remove('hidden');
 
-    elements.yearDisplay.textContent = state.config.year;
+    // Update year display - show range if leave year doesn't start in January
+    const leaveYearMonth = state.config.leaveYearMonth || 0;
+    if (leaveYearMonth === 0) {
+        elements.yearDisplay.textContent = state.config.year;
+    } else {
+        const startMonth = MONTH_ABBREV[leaveYearMonth];
+        const endMonth = MONTH_ABBREV[(leaveYearMonth + 11) % 12];
+        const endYear = state.config.year + 1;
+        elements.yearDisplay.textContent = `${startMonth} ${state.config.year} – ${endMonth} ${endYear}`;
+    }
 
     renderCalendar();
     renderMiniYear();
@@ -403,7 +412,7 @@ function handleSetupSubmit(e) {
     }
 
     // Advanced settings
-    const bankHolidaysFree = document.getElementById('include-bank-holidays').checked;
+    const bankHolidaysUseAL = document.getElementById('bank-holidays-use-al').checked;
     const leaveYearMonth = parseInt(document.getElementById('leave-year-month').value);
     const leaveYearDay = parseInt(document.getElementById('leave-year-day').value);
 
@@ -412,7 +421,7 @@ function handleSetupSubmit(e) {
         year,
         region,
         workingDays,
-        bankHolidaysFree,
+        bankHolidaysUseAL,
         leaveYearMonth,
         leaveYearDay
     };
@@ -518,7 +527,7 @@ function handleStartOver() {
     });
 
     // Reset advanced settings
-    document.getElementById('include-bank-holidays').checked = true;
+    document.getElementById('bank-holidays-use-al').checked = false;
     document.getElementById('leave-year-month').value = 0;
     updateDayOptions();
     document.getElementById('leave-year-day').value = 1;
@@ -559,15 +568,21 @@ function renderCalendar() {
     elements.calendar.innerHTML = '';
 
     const year = state.config.year;
+    const leaveYearMonth = state.config.leaveYearMonth || 0;
+    const leaveYearDay = state.config.leaveYearDay || 1;
+
     const today = new Date();
     const todayStr = formatDate(today);
-    const bankHolidays = getBankHolidays(); // Full data with names
-    const bankHolidayMap = {};
-    bankHolidays.forEach(h => { bankHolidayMap[h.date] = h.name; });
 
-    // Also get next year's bank holidays for January display
-    const nextYearHolidays = getBankHolidaysForYear(year + 1);
-    nextYearHolidays.forEach(h => { bankHolidayMap[h.date] = h.name; });
+    // Get bank holidays for the relevant years
+    const bankHolidayMap = {};
+    // We may need holidays from the selected year and the next year
+    getBankHolidaysForYear(year).forEach(h => { bankHolidayMap[h.date] = h.name; });
+    getBankHolidaysForYear(year + 1).forEach(h => { bankHolidayMap[h.date] = h.name; });
+    // Also previous year if leave year starts later in the year
+    if (leaveYearMonth > 0) {
+        getBankHolidaysForYear(year - 1).forEach(h => { bankHolidayMap[h.date] = h.name; });
+    }
 
     // Weekday header
     const weekdayHeader = document.createElement('div');
@@ -584,21 +599,20 @@ function renderCalendar() {
     const weeksContainer = document.createElement('div');
     weeksContainer.className = 'weeks-container';
 
-    // Get first day of year and last day of year
-    const firstDayOfYear = new Date(year, 0, 1);
-    const lastDayOfYear = new Date(year, 11, 31);
+    // Calculate leave year start date
+    const leaveYearStart = new Date(year, leaveYearMonth, leaveYearDay);
 
-    // Calculate end date: 2 weeks after Dec 31, ending on a Sunday
-    let extendedEnd = new Date(lastDayOfYear);
-    extendedEnd.setDate(extendedEnd.getDate() + 14); // Add 2 weeks
+    // Calculate end date: 365 days + 2 weeks from start, ending on a Sunday
+    let extendedEnd = new Date(leaveYearStart);
+    extendedEnd.setDate(extendedEnd.getDate() + 365 + 14); // Add 365 days + 2 weeks
     // Extend to the next Sunday if not already on Sunday
     const extendedDayOfWeek = extendedEnd.getDay();
     if (extendedDayOfWeek !== 0) {
         extendedEnd.setDate(extendedEnd.getDate() + (7 - extendedDayOfWeek));
     }
 
-    // Find the Monday of the week containing Jan 1
-    let currentDate = new Date(firstDayOfYear);
+    // Find the Monday of the week containing the leave year start
+    let currentDate = new Date(leaveYearStart);
     const dayOfWeek = currentDate.getDay();
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     currentDate.setDate(currentDate.getDate() + mondayOffset);
@@ -609,7 +623,7 @@ function renderCalendar() {
         weekRow.className = 'week-row';
 
         for (let i = 0; i < 7; i++) {
-            const tile = createDayTile(currentDate, year, todayStr, bankHolidayMap);
+            const tile = createDayTileForLeaveYear(currentDate, leaveYearStart, todayStr, bankHolidayMap);
             weekRow.appendChild(tile);
             currentDate.setDate(currentDate.getDate() + 1);
         }
@@ -692,6 +706,92 @@ function createDayTile(date, year, todayStr, bankHolidayMap) {
 
     // Show month name on 1st of each month
     if (dayOfMonth === 1) {
+        const monthIndicator = document.createElement('span');
+        monthIndicator.className = 'month-indicator';
+        monthIndicator.textContent = MONTH_ABBREV[month];
+        content.appendChild(monthIndicator);
+    }
+
+    const dayNumber = document.createElement('span');
+    dayNumber.className = 'day-number';
+    dayNumber.textContent = dayOfMonth;
+    content.appendChild(dayNumber);
+
+    tile.appendChild(content);
+
+    return tile;
+}
+
+function createDayTileForLeaveYear(date, leaveYearStart, todayStr, bankHolidayMap) {
+    const tile = document.createElement('div');
+    tile.className = 'day-tile';
+
+    const dateStr = formatDate(date);
+    const dayOfWeek = date.getDay();
+    const dayOfMonth = date.getDate();
+    const month = date.getMonth();
+    const dateYear = date.getFullYear();
+    const leaveYearStartStr = formatDate(leaveYearStart);
+
+    // For dates before the leave year start week, show as empty
+    // (These are days at the start of the first week before the leave year begins)
+    if (dateStr < leaveYearStartStr) {
+        tile.classList.add('empty');
+        tile.innerHTML = '<span class="day-number"></span>';
+        return tile;
+    }
+
+    tile.dataset.date = dateStr;
+
+    // Calculate months since leave year start for alternating colors
+    const monthsSinceStart = (dateYear - leaveYearStart.getFullYear()) * 12 + month - leaveYearStart.getMonth();
+    if (monthsSinceStart % 2 === 0) {
+        tile.classList.add('month-even');
+    } else {
+        tile.classList.add('month-odd');
+    }
+
+    // Weekend
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    if (isWeekend) {
+        tile.classList.add('weekend');
+    }
+
+    // Non-working day
+    if (!state.config.workingDays.includes(dayOfWeek)) {
+        tile.classList.add('non-working');
+    }
+
+    // Today
+    if (dateStr === todayStr) {
+        tile.classList.add('today');
+    }
+
+    // Bank holiday
+    const bankHolidayName = bankHolidayMap[dateStr];
+    if (bankHolidayName) {
+        tile.classList.add('bank-holiday');
+
+        // Add bank holiday label
+        const holidayLabel = document.createElement('span');
+        holidayLabel.className = 'bank-holiday-label';
+        // Shorten the name for display
+        holidayLabel.textContent = shortenHolidayName(bankHolidayName);
+        tile.appendChild(holidayLabel);
+    }
+
+    // Leave block
+    const leaveBlock = getLeaveBlockForDate(dateStr);
+    if (leaveBlock) {
+        applyLeaveStyles(tile, dateStr, leaveBlock);
+    }
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'day-content';
+
+    // Show month name on 1st of each month, or on leave year start day
+    if (dayOfMonth === 1 || dateStr === leaveYearStartStr) {
         const monthIndicator = document.createElement('span');
         monthIndicator.className = 'month-indicator';
         monthIndicator.textContent = MONTH_ABBREV[month];
@@ -1146,7 +1246,9 @@ function calculateROIWithConnectedWeekends(startDate, endDate) {
     const allBankHolidays = [...bankHolidays, ...nextYearHolidays.map(h => h.date)];
 
     const { workingDays } = state.config;
-    const bankHolidaysFree = state.config.bankHolidaysFree !== false; // Default to true
+    // If bankHolidaysUseAL is true, bank holidays require AL (not free)
+    // If bankHolidaysUseAL is false/undefined, bank holidays are free
+    const bankHolidaysFree = !state.config.bankHolidaysUseAL;
 
     // Expand range to include connected weekends
     let expandedStart = parseDate(startDate);
@@ -1204,7 +1306,7 @@ function calculateROIWithConnectedWeekends(startDate, endDate) {
             const isBankHoliday = allBankHolidays.includes(dateStr);
 
             // If bank holidays are free, don't count them as leave days
-            // If bank holidays are NOT free, they count as leave days if they're working days
+            // If bank holidays require AL, they count as leave days if they're working days
             if (isWorkingDay) {
                 if (isBankHoliday && bankHolidaysFree) {
                     // Bank holiday is free, don't count
