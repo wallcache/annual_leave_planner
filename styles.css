@@ -155,6 +155,14 @@ body {
     }
 }
 
+.setup-logo {
+    display: block;
+    height: 64px;
+    width: auto;
+    object-fit: contain;
+    margin: 0 auto var(--space-md);
+}
+
 .modal h1 {
     font-size: 1.5rem;
     font-weight: 600;
@@ -524,6 +532,12 @@ body {
     display: flex;
     align-items: center;
     gap: var(--space-md);
+}
+
+.logo-icon {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
 }
 
 .logo {

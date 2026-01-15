@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="twAsset_logo.png" alt="Timewell Logo" width="120">
+</p>
+
 # Timewell - Annual Leave Planner
 
 A beautiful, intuitive web application for planning your annual leave with maximum efficiency. Designed for UK workers who want to visualise their year ahead and make the most of their holiday allowance.
