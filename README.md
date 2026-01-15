@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="twAsset_logo.png" alt="Timewell Logo" width="120">
+  <img src="main_logo.png" alt="Timewell Logo" width="120">
 </p>
 
 # Timewell - Annual Leave Planner
