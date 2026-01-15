@@ -1784,11 +1784,11 @@ body.leave-dragging * {
 
 .toggle-label input[type="checkbox"] {
     position: absolute;
+    left: -9999px;
     opacity: 0;
-    width: 0;
-    height: 0;
+    width: 1px;
+    height: 1px;
     pointer-events: none;
-    visibility: hidden;
 }
 
 .toggle-switch {
