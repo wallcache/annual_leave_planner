@@ -1673,7 +1673,8 @@ body.leave-dragging * {
    ========================================================================== */
 
 #summary-panel.expanded {
-    min-width: 320px;
+    min-width: 200px;
+    max-width: 220px;
 }
 
 .summary-expanded-content {
