@@ -59,6 +59,16 @@ const BANK_HOLIDAYS = {
             { date: '2028-12-25', name: 'Christmas Day' },
             { date: '2028-12-26', name: 'Boxing Day' },
         ],
+        2029: [
+            { date: '2029-01-01', name: "New Year's Day" },
+            { date: '2029-03-30', name: 'Good Friday' },
+            { date: '2029-04-02', name: 'Easter Monday' },
+            { date: '2029-05-07', name: 'Early May Bank Holiday' },
+            { date: '2029-05-28', name: 'Spring Bank Holiday' },
+            { date: '2029-08-27', name: 'Summer Bank Holiday' },
+            { date: '2029-12-25', name: 'Christmas Day' },
+            { date: '2029-12-26', name: 'Boxing Day' },
+        ],
     },
     'scotland': {
         2024: [
@@ -116,6 +126,17 @@ const BANK_HOLIDAYS = {
             { date: '2028-12-25', name: 'Christmas Day' },
             { date: '2028-12-26', name: 'Boxing Day' },
         ],
+        2029: [
+            { date: '2029-01-01', name: "New Year's Day" },
+            { date: '2029-01-02', name: '2nd January' },
+            { date: '2029-03-30', name: 'Good Friday' },
+            { date: '2029-05-07', name: 'Early May Bank Holiday' },
+            { date: '2029-05-28', name: 'Spring Bank Holiday' },
+            { date: '2029-08-06', name: 'Summer Bank Holiday' },
+            { date: '2029-11-30', name: "St Andrew's Day" },
+            { date: '2029-12-25', name: 'Christmas Day' },
+            { date: '2029-12-26', name: 'Boxing Day' },
+        ],
     }
 };
 
@@ -133,6 +154,15 @@ const state = {
         endDate: null,
     },
     yearDropdownOpen: false,
+    // Drag-to-shift leave state
+    leaveDrag: {
+        active: false,
+        blockId: null,
+        startX: null,
+        originalStartDate: null,
+        originalEndDate: null,
+        currentShift: 0,
+    },
 };
 
 // =============================================================================
@@ -198,6 +228,7 @@ function cacheElements() {
 function setupEventListeners() {
     // Setup form
     elements.setupForm.addEventListener('submit', handleSetupSubmit);
+    document.getElementById('start-over-btn').addEventListener('click', handleStartOver);
 
     // Label form
     elements.labelForm.addEventListener('submit', handleLabelSubmit);
@@ -243,6 +274,11 @@ function setupEventListeners() {
     document.addEventListener('mousemove', handleCalendarMouseMove);
     document.addEventListener('mouseup', handleCalendarMouseUp);
 
+    // Leave drag-to-shift
+    elements.calendar.addEventListener('mousedown', handleLeaveDragStart);
+    document.addEventListener('mousemove', handleLeaveDragMove);
+    document.addEventListener('mouseup', handleLeaveDragEnd);
+
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyDown);
 }
@@ -285,7 +321,11 @@ function showSetup() {
 
     if (state.config) {
         document.getElementById('allowance').value = state.config.allowance;
-        document.getElementById('year').value = state.config.year;
+
+        // Set year radio button
+        const yearRadio = document.querySelector(`input[name="year"][value="${state.config.year}"]`);
+        if (yearRadio) yearRadio.checked = true;
+
         document.getElementById('region').value = state.config.region;
 
         document.querySelectorAll('input[name="workday"]').forEach(cb => {
@@ -367,7 +407,8 @@ function handleSetupSubmit(e) {
     e.preventDefault();
 
     const allowance = parseInt(document.getElementById('allowance').value);
-    const year = parseInt(document.getElementById('year').value);
+    const yearRadio = document.querySelector('input[name="year"]:checked');
+    const year = yearRadio ? parseInt(yearRadio.value) : 2026;
     const region = document.getElementById('region').value;
 
     const workingDays = [];
@@ -387,6 +428,25 @@ function handleSetupSubmit(e) {
 
 function openSettings() {
     showSetup();
+}
+
+function handleStartOver() {
+    if (confirm('Are you sure you want to start over? This will delete all your planned leave.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        state.config = null;
+        state.leaveBlocks = [];
+        state.undoStack = [];
+
+        // Reset form to defaults
+        document.getElementById('allowance').value = 25;
+        document.querySelector('input[name="year"][value="2026"]').checked = true;
+        document.getElementById('region').value = 'england-wales';
+        document.querySelectorAll('input[name="workday"]').forEach(cb => {
+            cb.checked = [1, 2, 3, 4, 5].includes(parseInt(cb.value));
+        });
+
+        showSetup();
+    }
 }
 
 // =============================================================================
@@ -944,6 +1004,158 @@ function calculateROIWithConnectedWeekends(startDate, endDate) {
 }
 
 // =============================================================================
+// Leave Drag-to-Shift
+// =============================================================================
+
+function handleLeaveDragStart(e) {
+    const tile = e.target.closest('.day-tile.has-leave');
+    if (!tile) return;
+
+    // Don't start drag if clicking the edit button
+    if (e.target.closest('.leave-edit-btn')) return;
+
+    const blockId = tile.dataset.leaveId;
+    const block = state.leaveBlocks.find(b => b.id === blockId);
+    if (!block) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    state.leaveDrag = {
+        active: true,
+        blockId: blockId,
+        startX: e.clientX,
+        originalStartDate: block.startDate,
+        originalEndDate: block.endDate,
+        currentShift: 0,
+    };
+
+    // Add dragging class to body
+    document.body.classList.add('leave-dragging');
+
+    // Highlight the leave block being dragged
+    document.querySelectorAll(`.day-tile[data-leave-id="${blockId}"]`).forEach(t => {
+        t.classList.add('dragging');
+    });
+}
+
+function handleLeaveDragMove(e) {
+    if (!state.leaveDrag.active) return;
+
+    const deltaX = e.clientX - state.leaveDrag.startX;
+    // Calculate shift in days based on pixel movement (approx 130px per day tile)
+    const dayTileWidth = 130;
+    const shift = Math.round(deltaX / dayTileWidth);
+
+    if (shift !== state.leaveDrag.currentShift) {
+        state.leaveDrag.currentShift = shift;
+        previewLeaveShift(shift);
+    }
+}
+
+function handleLeaveDragEnd(e) {
+    if (!state.leaveDrag.active) return;
+
+    const { blockId, currentShift, originalStartDate, originalEndDate } = state.leaveDrag;
+
+    document.body.classList.remove('leave-dragging');
+    document.querySelectorAll('.day-tile.dragging').forEach(t => {
+        t.classList.remove('dragging');
+    });
+    document.querySelectorAll('.day-tile.drag-preview').forEach(t => {
+        t.classList.remove('drag-preview');
+    });
+
+    if (currentShift !== 0) {
+        // Apply the shift
+        const block = state.leaveBlocks.find(b => b.id === blockId);
+        if (block) {
+            const newStartDate = shiftDate(originalStartDate, currentShift);
+            const newEndDate = shiftDate(originalEndDate, currentShift);
+
+            // Check if new dates are within the year
+            const year = state.config.year;
+            const startYear = parseDate(newStartDate).getFullYear();
+            const endYear = parseDate(newEndDate).getFullYear();
+
+            if (startYear === year && endYear === year) {
+                // Check for overlaps with other leave blocks
+                const hasOverlap = state.leaveBlocks.some(b => {
+                    if (b.id === blockId) return false;
+                    return !(newEndDate < b.startDate || newStartDate > b.endDate);
+                });
+
+                if (!hasOverlap) {
+                    // Save to undo stack
+                    state.undoStack.push({
+                        action: 'shift',
+                        block: {
+                            id: blockId,
+                            oldStartDate: originalStartDate,
+                            oldEndDate: originalEndDate,
+                            newStartDate: newStartDate,
+                            newEndDate: newEndDate,
+                        }
+                    });
+
+                    // Apply the shift
+                    block.startDate = newStartDate;
+                    block.endDate = newEndDate;
+
+                    // Recalculate ROI
+                    const roi = calculateROIWithConnectedWeekends(newStartDate, newEndDate);
+                    block.leaveDaysUsed = roi.leaveDaysUsed;
+                    block.totalDaysOff = roi.totalDaysOff;
+
+                    saveState();
+                    renderCalendar();
+                    renderMiniYear();
+                    renderCompactYear();
+                    updateSummary();
+                }
+            }
+        }
+    }
+
+    // Reset drag state
+    state.leaveDrag = {
+        active: false,
+        blockId: null,
+        startX: null,
+        originalStartDate: null,
+        originalEndDate: null,
+        currentShift: 0,
+    };
+}
+
+function previewLeaveShift(shift) {
+    const { blockId, originalStartDate, originalEndDate } = state.leaveDrag;
+
+    // Remove existing previews
+    document.querySelectorAll('.day-tile.drag-preview').forEach(t => {
+        t.classList.remove('drag-preview');
+    });
+
+    // Calculate new dates
+    const newStartDate = shiftDate(originalStartDate, shift);
+    const newEndDate = shiftDate(originalEndDate, shift);
+
+    // Show preview on new positions
+    document.querySelectorAll('.day-tile[data-date]').forEach(tile => {
+        const date = tile.dataset.date;
+        if (date >= newStartDate && date <= newEndDate) {
+            tile.classList.add('drag-preview');
+        }
+    });
+}
+
+function shiftDate(dateStr, days) {
+    const date = parseDate(dateStr);
+    date.setDate(date.getDate() + days);
+    return formatDate(date);
+}
+
+// =============================================================================
 // Label Modal
 // =============================================================================
 
@@ -959,11 +1171,20 @@ function showLabelModal(startDate, endDate) {
     document.getElementById('leave-label').focus();
 }
 
+// Random emojis for empty labels
+const RANDOM_LEAVE_EMOJIS = ['🍕', '⭐', '🤩', '🌴', '😎', '🚕', '🥾', '🚞'];
+
+function getRandomEmoji() {
+    return RANDOM_LEAVE_EMOJIS[Math.floor(Math.random() * RANDOM_LEAVE_EMOJIS.length)];
+}
+
 function handleLabelSubmit(e) {
     e.preventDefault();
 
-    const label = document.getElementById('leave-label').value.trim();
-    if (!label) return;
+    let label = document.getElementById('leave-label').value.trim();
+    if (!label) {
+        label = getRandomEmoji();
+    }
 
     const { startDate, endDate } = normalizeSelection();
     const roi = calculateROIWithConnectedWeekends(startDate, endDate);
@@ -1086,6 +1307,17 @@ function undoLastAction() {
         const index = state.leaveBlocks.findIndex(b => b.id === lastAction.block.id);
         if (index !== -1) {
             state.leaveBlocks.splice(index, 1);
+        }
+    } else if (lastAction.action === 'shift') {
+        // Restore original dates
+        const block = state.leaveBlocks.find(b => b.id === lastAction.block.id);
+        if (block) {
+            block.startDate = lastAction.block.oldStartDate;
+            block.endDate = lastAction.block.oldEndDate;
+            // Recalculate ROI
+            const roi = calculateROIWithConnectedWeekends(block.startDate, block.endDate);
+            block.leaveDaysUsed = roi.leaveDaysUsed;
+            block.totalDaysOff = roi.totalDaysOff;
         }
     }
 
@@ -1228,7 +1460,9 @@ function showManagerMessage() {
         if (workingDays.length > 0) {
             const start = workingDays[0];
             const end = workingDays[workingDays.length - 1];
-            html += `<li>${formatDateFriendly(start)} – ${formatDateFriendly(end)} <em>(${block.label})</em></li>`;
+            const dayCount = workingDays.length;
+            const dayWord = dayCount === 1 ? 'day' : 'days';
+            html += `<li>${formatDateFriendlyFull(start)} – ${formatDateFriendlyFull(end)} (${dayCount} ${dayWord})</li>`;
         }
     });
 
@@ -1277,7 +1511,9 @@ function copyMessage() {
         if (workingDays.length > 0) {
             const start = workingDays[0];
             const end = workingDays[workingDays.length - 1];
-            text += `• ${formatDateFriendly(start)} – ${formatDateFriendly(end)} (${block.label})\n`;
+            const dayCount = workingDays.length;
+            const dayWord = dayCount === 1 ? 'day' : 'days';
+            text += `• ${formatDateFriendlyFull(start)} – ${formatDateFriendlyFull(end)} (${dayCount} ${dayWord})\n`;
         }
     });
 
@@ -1359,6 +1595,16 @@ function formatDateRange(startDate, endDate) {
 }
 
 function formatDateFriendly(dateStr) {
+    const date = parseDate(dateStr);
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const day = dayNames[date.getDay()];
+    const dayNum = date.getDate();
+    const month = MONTH_ABBREV[date.getMonth()];
+
+    return `${day} ${dayNum} ${month}`;
+}
+
+function formatDateFriendlyFull(dateStr) {
     const date = parseDate(dateStr);
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const day = dayNames[date.getDay()];
